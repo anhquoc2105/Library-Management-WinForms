@@ -152,5 +152,5 @@ Dữ liệu mẫu trong script SQL có sẵn các tài khoản sau:
 ---
 ## Tác giả
 
-**Họ và Tên:** Thái Công Anh Quốc
+**Họ và Tên:** Thái Công Anh Quốc\
 **Gmail:** anhquoc212005@gmail.com
