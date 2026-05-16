@@ -48,7 +48,7 @@ namespace QuanLyThuVien.GUI
             lblTieuDe.Location = new Point(34, 24);
 
             lblMoTa = new Label();
-            lblMoTa.Text = "Tìm kiếm sách theo mã, tên, thể loại và tác giả; đồng thời theo dõi số lượng còn trong kho.";
+            lblMoTa.Text = "Tìm kiếm sách theo mã, tên, thể loại và tác giả.";
             lblMoTa.ForeColor = Color.FromArgb(102, 117, 132);
             lblMoTa.AutoSize = true;
             lblMoTa.Location = new Point(38, 60);
@@ -153,8 +153,7 @@ namespace QuanLyThuVien.GUI
                 txtTheLoai.Text.Trim(),
                 txtTacGia.Text.Trim());
 
-            dgvSach.DataSource = dataTable;
-            DinhDangCot();
+            HienThiDanhSachSach(dataTable);
         }
 
         private void btnTaiLai_Click(object sender, EventArgs e)
@@ -168,8 +167,38 @@ namespace QuanLyThuVien.GUI
 
         private void TaiDanhSachSach()
         {
-            dgvSach.DataSource = sachBUS.LayDanhSachSach();
+            HienThiDanhSachSach(sachBUS.LayDanhSachSach());
+        }
+
+        private void HienThiDanhSachSach(DataTable sourceTable)
+        {
+            dgvSach.DataSource = TaoBangHienThi(sourceTable);
             DinhDangCot();
+        }
+
+        private DataTable TaoBangHienThi(DataTable sourceTable)
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("STT", typeof(int));
+            table.Columns.Add("MaSach", typeof(string));
+            table.Columns.Add("TenSach", typeof(string));
+            table.Columns.Add("TenTheLoai", typeof(string));
+            table.Columns.Add("TenTG", typeof(string));
+            table.Columns.Add("TinhTrang", typeof(string));
+
+            for (int i = 0; i < sourceTable.Rows.Count; i++)
+            {
+                DataRow sourceRow = sourceTable.Rows[i];
+                table.Rows.Add(
+                    i + 1,
+                    Convert.ToInt32(sourceRow["MaSach"]).ToString("D5"),
+                    sourceRow["TenSach"],
+                    sourceRow["TenTheLoai"],
+                    sourceRow["TenTG"],
+                    sourceRow["TinhTrang"]);
+            }
+
+            return table;
         }
 
         private void DinhDangCot()
@@ -179,16 +208,19 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
+            dgvSach.Columns["STT"].HeaderText = "STT";
             dgvSach.Columns["MaSach"].HeaderText = "Mã sách";
             dgvSach.Columns["TenSach"].HeaderText = "Tên sách";
             dgvSach.Columns["TenTheLoai"].HeaderText = "Thể loại";
             dgvSach.Columns["TenTG"].HeaderText = "Tác giả";
-            dgvSach.Columns["NamXB"].HeaderText = "Năm XB";
-            dgvSach.Columns["NhaXB"].HeaderText = "Nhà XB";
-            dgvSach.Columns["NgayNhap"].HeaderText = "Ngày nhập";
-            dgvSach.Columns["TriGia"].HeaderText = "Trị giá";
-            dgvSach.Columns["SoLuongTon"].HeaderText = "Số lượng còn";
             dgvSach.Columns["TinhTrang"].HeaderText = "Tình trạng";
+
+            dgvSach.Columns["STT"].FillWeight = 55;
+            dgvSach.Columns["MaSach"].FillWeight = 80;
+            dgvSach.Columns["TenSach"].FillWeight = 165;
+            dgvSach.Columns["TenTheLoai"].FillWeight = 110;
+            dgvSach.Columns["TenTG"].FillWeight = 130;
+            dgvSach.Columns["TinhTrang"].FillWeight = 110;
 
             dgvSach.ClearSelection();
         }

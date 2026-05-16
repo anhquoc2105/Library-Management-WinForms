@@ -227,7 +227,7 @@ namespace QuanLyThuVien.GUI
 
                 if (dgvDocGia.Columns.Count > 0)
                 {
-                    dgvDocGia.Columns["MaDG"].HeaderText = "Mã độc giả";
+                    dgvDocGia.Columns["MaDGHienThi"].HeaderText = "Mã độc giả";
                     dgvDocGia.Columns["TenDG"].HeaderText = "Họ và tên";
                     dgvDocGia.Columns["LoaiDG"].HeaderText = "Loại độc giả";
                     dgvDocGia.Columns["NgaySinhDG"].HeaderText = "Ngày sinh";
@@ -235,15 +235,20 @@ namespace QuanLyThuVien.GUI
                     dgvDocGia.Columns["EmailDG"].HeaderText = "Email";
                     dgvDocGia.Columns["NgLapThe"].HeaderText = "Ngày lập thẻ";
                     dgvDocGia.Columns["NgayHetHan"].HeaderText = "Ngày hết hạn";
-                    dgvDocGia.Columns["TongNo"].HeaderText = "Tổng nợ";
-                    dgvDocGia.Columns["MaTaiKhoan"].HeaderText = "Mã tài khoản";
+                    dgvDocGia.Columns["MaDG"].Visible = false;
+                    dgvDocGia.Columns["TongNo"].Visible = false;
+                    dgvDocGia.Columns["MaTaiKhoan"].Visible = false;
                 }
 
                 dgvDocGia.ClearSelection();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể tải danh sách độc giả.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Không thể tải danh sách độc giả.\nChi tiết: " + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
     }

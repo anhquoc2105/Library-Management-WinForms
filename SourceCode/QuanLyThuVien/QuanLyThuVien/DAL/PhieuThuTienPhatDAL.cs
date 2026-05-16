@@ -73,14 +73,6 @@ namespace QuanLyThuVien.DAL
                             command.ExecuteNonQuery();
                         }
 
-                        const string updateNoQuery = "UPDATE DocGia SET TongNo = @ConLai WHERE MaDG = @MaDG";
-                        using (SqlCommand command = new SqlCommand(updateNoQuery, connection, transaction))
-                        {
-                            command.Parameters.AddWithValue("@ConLai", conLai);
-                            command.Parameters.AddWithValue("@MaDG", maDG);
-                            command.ExecuteNonQuery();
-                        }
-
                         transaction.Commit();
                         thongBao = "Lập phiếu thu tiền phạt thành công.";
                         return true;

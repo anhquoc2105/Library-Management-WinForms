@@ -8,11 +8,10 @@ namespace QuanLyThuVien.GUI
     {
         private Label lblTieuDe;
         private Label lblXinChao;
-        private FlowLayoutPanel pnlMenu;
+        private Panel pnlContainer;
+        private TableLayoutPanel tblMenu;
         private Button btnQuanLySach;
         private Button btnQuanLyDocGia;
-        private Button btnQuanLyThuThu;
-        private Button btnThamSo;
         private Button btnMuonSach;
         private Button btnTraSach;
         private Button btnTraCuuSach;
@@ -34,10 +33,14 @@ namespace QuanLyThuVien.GUI
                 : string.Equals(vaiTro, "DocGia", StringComparison.OrdinalIgnoreCase)
                     ? "Độc giả"
                     : vaiTro;
+            bool laDocGia = string.Equals(vaiTro, "DocGia", StringComparison.OrdinalIgnoreCase);
+            int soHangMenu = laDocGia ? 4 : 3;
+            int chieuCaoBang = soHangMenu * 110;
+            int chieuCaoKhung = chieuCaoBang + 70;
 
             Text = "Menu chính - Quản lý thư viện";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1140, 720);
+            ClientSize = new Size(1140, laDocGia ? 720 : 610);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(243, 246, 250);
@@ -57,21 +60,32 @@ namespace QuanLyThuVien.GUI
             lblXinChao.AutoSize = true;
             lblXinChao.Location = new Point(410, 72);
 
-            pnlMenu = new FlowLayoutPanel();
-            pnlMenu.Location = new Point(70, 130);
-            pnlMenu.Size = new Size(1000, 520);
-            pnlMenu.BackColor = Color.White;
-            pnlMenu.Padding = new Padding(24);
-            pnlMenu.WrapContents = true;
-            pnlMenu.AutoScroll = true;
-            pnlMenu.BorderStyle = BorderStyle.FixedSingle;
+            pnlContainer = new Panel();
+            pnlContainer.Location = new Point(70, 130);
+            pnlContainer.Size = new Size(1000, chieuCaoKhung);
+            pnlContainer.BackColor = Color.White;
+            pnlContainer.BorderStyle = BorderStyle.FixedSingle;
+
+            tblMenu = new TableLayoutPanel();
+            tblMenu.Location = new Point(36, 28);
+            tblMenu.Size = new Size(928, chieuCaoBang);
+            tblMenu.ColumnCount = 3;
+            tblMenu.RowCount = soHangMenu;
+            tblMenu.BackColor = Color.White;
+
+            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34F));
+
+            for (int i = 0; i < soHangMenu; i++)
+            {
+                tblMenu.RowStyles.Add(new RowStyle(SizeType.Absolute, 100F));
+            }
 
             btnQuanLySach = TaoButton("Tiếp nhận sách");
             btnQuanLyDocGia = TaoButton("Lập thẻ độc giả");
-            btnQuanLyThuThu = TaoButton("Quản lý thủ thư");
             btnMuonSach = TaoButton("Cho mượn sách");
             btnTraSach = TaoButton("Nhận trả sách");
-            btnThamSo = TaoButton("Tham số hiện tại");
             btnTraCuuSach = TaoButton("Tra cứu sách");
             btnBaoCao = TaoButton("Báo cáo");
             btnThongTinCaNhan = TaoButton("Thông tin cá nhân");
@@ -81,10 +95,8 @@ namespace QuanLyThuVien.GUI
 
             btnQuanLySach.Click += (sender, e) => new FormQuanLySach().ShowDialog();
             btnQuanLyDocGia.Click += (sender, e) => new FormQuanLyDocGia().ShowDialog();
-            btnQuanLyThuThu.Click += (sender, e) => new FormQuanLyThuThu().ShowDialog();
             btnMuonSach.Click += (sender, e) => new FormMuonSach().ShowDialog();
             btnTraSach.Click += (sender, e) => new FormTraSach().ShowDialog();
-            btnThamSo.Click += (sender, e) => new FormThamSo().ShowDialog();
             btnTraCuuSach.Click += (sender, e) => new FormTraCuuSach().ShowDialog();
             btnBaoCao.Click += (sender, e) => new FormBaoCao().ShowDialog();
             btnThongTinCaNhan.Click += (sender, e) => new FormThongTinCaNhan().ShowDialog();
@@ -92,23 +104,28 @@ namespace QuanLyThuVien.GUI
             btnSuaQuyDinh.Click += (sender, e) => new FormSuaQuyDinh().ShowDialog();
             btnDangXuat.Click += btnDangXuat_Click;
 
-            pnlMenu.Controls.Add(btnQuanLySach);
-            pnlMenu.Controls.Add(btnQuanLyDocGia);
-            pnlMenu.Controls.Add(btnQuanLyThuThu);
-            pnlMenu.Controls.Add(btnMuonSach);
-            pnlMenu.Controls.Add(btnTraSach);
-            pnlMenu.Controls.Add(btnThamSo);
-            pnlMenu.Controls.Add(btnTraCuuSach);
-            pnlMenu.Controls.Add(btnBaoCao);
-            pnlMenu.Controls.Add(btnThongTinCaNhan);
-            pnlMenu.Controls.Add(btnThuTienPhat);
-            pnlMenu.Controls.Add(btnSuaQuyDinh);
-            pnlMenu.Controls.Add(btnDangXuat);
+            ThemNutVaoBang(btnQuanLySach, 0, 0);
+            ThemNutVaoBang(btnQuanLyDocGia, 1, 0);
+            ThemNutVaoBang(btnMuonSach, 2, 0);
+
+            ThemNutVaoBang(btnTraSach, 0, 1);
+            ThemNutVaoBang(btnTraCuuSach, 1, 1);
+            ThemNutVaoBang(btnBaoCao, 2, 1);
+
+            ThemNutVaoBang(btnThuTienPhat, 0, 2);
+            ThemNutVaoBang(btnSuaQuyDinh, 1, 2);
+            ThemNutVaoBang(btnDangXuat, 2, 2);
+
+            if (laDocGia)
+            {
+                ThemNutVaoBang(btnThongTinCaNhan, 1, 3);
+            }
+
+            pnlContainer.Controls.Add(tblMenu);
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblXinChao);
-            Controls.Add(pnlMenu);
-
+            Controls.Add(pnlContainer);
             PhanQuyen(vaiTro);
         }
 
@@ -116,15 +133,21 @@ namespace QuanLyThuVien.GUI
         {
             Button button = new Button();
             button.Text = text;
-            button.Size = new Size(280, 98);
-            button.Margin = new Padding(14);
+            button.Dock = DockStyle.Fill;
+            button.Margin = new Padding(12);
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderSize = 0;
+            button.TabStop = false;
             button.BackColor = Color.FromArgb(235, 242, 248);
             button.ForeColor = Color.FromArgb(28, 77, 125);
             button.Font = new Font("Segoe UI", 13.5F, FontStyle.Bold);
             button.Cursor = Cursors.Hand;
             return button;
+        }
+
+        private void ThemNutVaoBang(Control control, int col, int row)
+        {
+            tblMenu.Controls.Add(control, col, row);
         }
 
         private void PhanQuyen(string vaiTro)
@@ -133,10 +156,8 @@ namespace QuanLyThuVien.GUI
 
             btnQuanLySach.Visible = !laDocGia;
             btnQuanLyDocGia.Visible = !laDocGia;
-            btnQuanLyThuThu.Visible = !laDocGia;
             btnMuonSach.Visible = !laDocGia;
             btnTraSach.Visible = !laDocGia;
-            btnThamSo.Visible = !laDocGia;
             btnBaoCao.Visible = !laDocGia;
             btnThuTienPhat.Visible = !laDocGia;
             btnSuaQuyDinh.Visible = !laDocGia;

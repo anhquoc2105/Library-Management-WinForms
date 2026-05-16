@@ -37,7 +37,6 @@ namespace QuanLyThuVien.DAL
                     {
                         DataRow thamSo = LayThamSo(connection, transaction);
                         int soSachMuonToiDa = Convert.ToInt32(thamSo["SoSachMuonToiDa"]);
-                        decimal tienPhatMoiNgay = Convert.ToDecimal(thamSo["TienPhat"]);
 
                         const string checkDocGiaQuery = @"
                             SELECT NgayHetHan, TongNo
@@ -184,18 +183,6 @@ namespace QuanLyThuVien.DAL
                             command.ExecuteNonQuery();
                         }
 
-                        const string updateSachQuery = @"
-                            UPDATE Sach
-                            SET SoLuongTon = SoLuongTon - 1,
-                                TinhTrang = CASE WHEN SoLuongTon - 1 > 0 THEN N'Con' ELSE N'Dang muon' END
-                            WHERE MaSach = @MaSach";
-
-                        using (SqlCommand command = new SqlCommand(updateSachQuery, connection, transaction))
-                        {
-                            command.Parameters.AddWithValue("@MaSach", maSach);
-                            command.ExecuteNonQuery();
-                        }
-
                         transaction.Commit();
                         thongBao = "Lập phiếu mượn thành công.";
                         return true;
@@ -244,12 +231,24 @@ namespace QuanLyThuVien.DAL
                     pm.MaPhieu,
                     dg.MaDG,
                     dg.TenDG,
+                    dg.TongNo,
                     s.MaSach,
                     s.TenSach,
                     pm.NgayMuon,
                     pm.NgayPhaiTra,
                     pm.NgayTra,
                     pm.TienPhatKyNay,
+                    DATEDIFF(DAY, pm.NgayMuon, CAST(GETDATE() AS DATE)) AS SoNgayMuon,
+                    CASE
+                        WHEN CAST(GETDATE() AS DATE) > pm.NgayPhaiTra
+                        THEN DATEDIFF(DAY, pm.NgayPhaiTra, CAST(GETDATE() AS DATE)) *
+                             (
+                                 SELECT TOP 1 TienPhat
+                                 FROM ThamSo
+                                 ORDER BY MaThamSo DESC
+                             )
+                        ELSE 0
+                    END AS TienPhatDuKien,
                     CASE
                         WHEN s.TinhTrang = N'Con' THEN N'Còn'
                         WHEN s.TinhTrang = N'Dang muon' THEN N'Đang mượn'
@@ -320,33 +319,6 @@ namespace QuanLyThuVien.DAL
                             command.Parameters.AddWithValue("@TienPhatKyNay", tienPhatKyNay);
                             command.Parameters.AddWithValue("@MaPhieu", maPhieu);
                             command.ExecuteNonQuery();
-                        }
-
-                        const string updateSachQuery = @"
-                            UPDATE Sach
-                            SET SoLuongTon = SoLuongTon + 1,
-                                TinhTrang = N'Con'
-                            WHERE MaSach = @MaSach";
-
-                        using (SqlCommand command = new SqlCommand(updateSachQuery, connection, transaction))
-                        {
-                            command.Parameters.AddWithValue("@MaSach", maSach);
-                            command.ExecuteNonQuery();
-                        }
-
-                        if (tienPhatKyNay > 0)
-                        {
-                            const string updateDocGiaNoQuery = @"
-                                UPDATE DocGia
-                                SET TongNo = TongNo + @TienPhatKyNay
-                                WHERE MaDG = @MaDG";
-
-                            using (SqlCommand command = new SqlCommand(updateDocGiaNoQuery, connection, transaction))
-                            {
-                                command.Parameters.AddWithValue("@TienPhatKyNay", tienPhatKyNay);
-                                command.Parameters.AddWithValue("@MaDG", maDG);
-                                command.ExecuteNonQuery();
-                            }
                         }
 
                         transaction.Commit();

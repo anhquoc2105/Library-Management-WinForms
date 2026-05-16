@@ -53,6 +53,7 @@
     <Compile Include="BUS\PhieuThuTienPhatBUS.cs" />
     <Compile Include="BUS\SachBUS.cs" />
     <Compile Include="BUS\ThamSoBUS.cs" />
+    <Compile Include="BUS\TheLoaiBUS.cs" />
     <Compile Include="BUS\ThuThuBUS.cs" />
     <Compile Include="DAL\TaiKhoanDAL.cs" />
     <Compile Include="DAL\BaoCaoDAL.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="DAL\PhieuThuTienPhatDAL.cs" />
     <Compile Include="DAL\SachDAL.cs" />
     <Compile Include="DAL\ThamSoDAL.cs" />
+    <Compile Include="DAL\TheLoaiDAL.cs" />
     <Compile Include="DAL\ThuThuDAL.cs" />
     <Compile Include="DTO\ChiTietPMDTO.cs" />
     <Compile Include="DTO\DocGiaDTO.cs" />

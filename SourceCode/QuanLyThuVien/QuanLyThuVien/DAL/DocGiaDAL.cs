@@ -12,6 +12,7 @@ namespace QuanLyThuVien.DAL
         {
             const string query = @"
                 SELECT
+                    ROW_NUMBER() OVER (ORDER BY MaDG) AS MaDGHienThi,
                     MaDG,
                     TenDG,
                     LoaiDG,
@@ -69,17 +70,23 @@ namespace QuanLyThuVien.DAL
 
             object emailCount = DbHelper.ExecuteScalar(
                 checkEmailQuery,
-                new SqlParameter("@EmailDG", string.IsNullOrWhiteSpace(docGia.EmailDG)
-                    ? (object)DBNull.Value
-                    : docGia.EmailDG));
+                new SqlParameter(
+                    "@EmailDG",
+                    string.IsNullOrWhiteSpace(docGia.EmailDG) ? (object)DBNull.Value : docGia.EmailDG));
 
             if (emailCount != null && Convert.ToInt32(emailCount) > 0)
             {
-                thongBao = "Email đã tồn tại.";
+                thongBao = "Email da ton tai.";
                 return false;
             }
 
-            const string query = @"
+            const string insertTaiKhoanQuery = @"
+                INSERT INTO TaiKhoan (TenDangNhap, MatKhau)
+                VALUES (@TenDangNhap, @MatKhau);
+
+                SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+            const string insertDocGiaQuery = @"
                 INSERT INTO DocGia
                 (
                     TenDG,
@@ -100,28 +107,78 @@ namespace QuanLyThuVien.DAL
                     @EmailDG,
                     @NgLapThe,
                     @TongNo,
-                    NULL
+                    @MaTaiKhoan
                 )";
 
-            int rowsAffected = DbHelper.ExecuteNonQuery(
-                query,
-                new SqlParameter("@TenDG", docGia.TenDG),
-                new SqlParameter("@LoaiDG", docGia.LoaiDG),
-                new SqlParameter("@NgaySinhDG", docGia.NgaySinhDG),
-                new SqlParameter("@DiaChiDG", string.IsNullOrWhiteSpace(docGia.DiaChiDG)
-                    ? (object)DBNull.Value
-                    : docGia.DiaChiDG),
-                new SqlParameter("@EmailDG", string.IsNullOrWhiteSpace(docGia.EmailDG)
-                    ? (object)DBNull.Value
-                    : docGia.EmailDG),
-                new SqlParameter("@NgLapThe", docGia.NgLapThe),
-                new SqlParameter("@TongNo", docGia.TongNo));
+            using (SqlConnection connection = DbHelper.GetConnection())
+            {
+                connection.Open();
 
-            thongBao = rowsAffected > 0
-                ? "Lập thẻ độc giả thành công."
-                : "Không thể lập thẻ độc giả.";
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        int maTaiKhoanDuKien = LayMaTaiKhoanTiepTheo(connection, transaction);
+                        string tenDangNhap = TaoTenDangNhapDocGia(maTaiKhoanDuKien);
+                        const string matKhauMacDinh = "123456";
 
-            return rowsAffected > 0;
+                        int maTaiKhoan;
+                        using (SqlCommand insertTaiKhoanCommand = new SqlCommand(insertTaiKhoanQuery, connection, transaction))
+                        {
+                            insertTaiKhoanCommand.Parameters.AddWithValue("@TenDangNhap", tenDangNhap);
+                            insertTaiKhoanCommand.Parameters.AddWithValue("@MatKhau", matKhauMacDinh);
+                            maTaiKhoan = Convert.ToInt32(insertTaiKhoanCommand.ExecuteScalar());
+                        }
+
+                        using (SqlCommand insertDocGiaCommand = new SqlCommand(insertDocGiaQuery, connection, transaction))
+                        {
+                            insertDocGiaCommand.Parameters.AddWithValue("@TenDG", docGia.TenDG);
+                            insertDocGiaCommand.Parameters.AddWithValue("@LoaiDG", docGia.LoaiDG);
+                            insertDocGiaCommand.Parameters.AddWithValue("@NgaySinhDG", docGia.NgaySinhDG);
+                            insertDocGiaCommand.Parameters.AddWithValue(
+                                "@DiaChiDG",
+                                string.IsNullOrWhiteSpace(docGia.DiaChiDG) ? (object)DBNull.Value : docGia.DiaChiDG);
+                            insertDocGiaCommand.Parameters.AddWithValue(
+                                "@EmailDG",
+                                string.IsNullOrWhiteSpace(docGia.EmailDG) ? (object)DBNull.Value : docGia.EmailDG);
+                            insertDocGiaCommand.Parameters.AddWithValue("@NgLapThe", docGia.NgLapThe);
+                            insertDocGiaCommand.Parameters.AddWithValue("@TongNo", docGia.TongNo);
+                            insertDocGiaCommand.Parameters.AddWithValue("@MaTaiKhoan", maTaiKhoan);
+                            insertDocGiaCommand.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+
+                        thongBao =
+                            "Lap the doc gia thanh cong.\n" +
+                            "Tai khoan dang nhap: " + tenDangNhap + "\n" +
+                            "Mat khau mac dinh: " + matKhauMacDinh;
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        thongBao = "Khong the lap the doc gia. Chi tiet: " + ex.Message;
+                        return false;
+                    }
+                }
+            }
+        }
+
+        private static string TaoTenDangNhapDocGia(int maDocGia)
+        {
+            return "docgia" + maDocGia.ToString("D2");
+        }
+
+        private static int LayMaTaiKhoanTiepTheo(SqlConnection connection, SqlTransaction transaction)
+        {
+            const string query = @"
+                SELECT IDENT_CURRENT('TaiKhoan') + IDENT_INCR('TaiKhoan')";
+
+            using (SqlCommand command = new SqlCommand(query, connection, transaction))
+            {
+                return Convert.ToInt32(command.ExecuteScalar());
+            }
         }
     }
 }

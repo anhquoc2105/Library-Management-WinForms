@@ -1,0 +1,52 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+build-check/
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs and diagnostics
+*.log
+*.tlog
+*.cache
+*.pdb
+
+# Test and coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# OS / editor files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local database / temp artifacts
+*.mdf
+*.ldf
+*.bak
+*.tmp
+*.temp
+
+# Project-specific temp files
+temp_de_tai.docx
+temp_de_tai_text.txt
+
+# Temporary probe project outputs
+TempDbProbe/bin/
+TempDbProbe/obj/

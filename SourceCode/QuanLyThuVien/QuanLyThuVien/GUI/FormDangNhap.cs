@@ -145,8 +145,14 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
+            string vaiTroHienThi = string.Equals(taiKhoan.VaiTro, "ThuThu", StringComparison.OrdinalIgnoreCase)
+                ? "Thủ thư"
+                : string.Equals(taiKhoan.VaiTro, "DocGia", StringComparison.OrdinalIgnoreCase)
+                    ? "Độc giả"
+                    : taiKhoan.VaiTro;
+
             MessageBox.Show(
-                thongBao + "\nVai trò: " + taiKhoan.VaiTro,
+                thongBao + "\nVai trò: " + vaiTroHienThi,
                 "Thông báo",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);

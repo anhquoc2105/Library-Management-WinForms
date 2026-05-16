@@ -11,12 +11,28 @@ IF OBJECT_ID(N'dbo.TRG_PhieuMuon_SetNgayPhaiTra', N'TR') IS NOT NULL
     DROP TRIGGER dbo.TRG_PhieuMuon_SetNgayPhaiTra;
 GO
 
+IF OBJECT_ID(N'dbo.TRG_PhieuMuon_HandleTraSach', N'TR') IS NOT NULL
+    DROP TRIGGER dbo.TRG_PhieuMuon_HandleTraSach;
+GO
+
 IF OBJECT_ID(N'dbo.TRG_DocGia_SetNgayHetHan', N'TR') IS NOT NULL
     DROP TRIGGER dbo.TRG_DocGia_SetNgayHetHan;
 GO
 
+IF OBJECT_ID(N'dbo.TRG_DocGia_ValidateTuoi', N'TR') IS NOT NULL
+    DROP TRIGGER dbo.TRG_DocGia_ValidateTuoi;
+GO
+
 IF OBJECT_ID(N'dbo.TRG_ChiTietPM_UpdateSLMuon', N'TR') IS NOT NULL
     DROP TRIGGER dbo.TRG_ChiTietPM_UpdateSLMuon;
+GO
+
+IF OBJECT_ID(N'dbo.TRG_Sach_ValidateNamXB', N'TR') IS NOT NULL
+    DROP TRIGGER dbo.TRG_Sach_ValidateNamXB;
+GO
+
+IF OBJECT_ID(N'dbo.TRG_PhieuThuTienPhat_RecalculateTongNo', N'TR') IS NOT NULL
+    DROP TRIGGER dbo.TRG_PhieuThuTienPhat_RecalculateTongNo;
 GO
 
 IF OBJECT_ID(N'dbo.PhieuThuTienPhat', N'U') IS NOT NULL
@@ -234,6 +250,141 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    DECLARE @SoSachMuonToiDa INT;
+    SELECT TOP 1 @SoSachMuonToiDa = SoSachMuonToiDa
+    FROM dbo.ThamSo
+    ORDER BY MaThamSo;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+        INNER JOIN dbo.DocGia dg ON pm.MaDG = dg.MaDG
+        WHERE dg.NgayHetHan IS NULL
+           OR dg.NgayHetHan < pm.NgayMuon
+    )
+    BEGIN
+        RAISERROR(N'Thẻ độc giả đã hết hạn hoặc chưa có ngày hết hạn.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+        WHERE EXISTS
+        (
+            SELECT 1
+            FROM dbo.PhieuMuon pm2
+            WHERE pm2.MaDG = pm.MaDG
+              AND pm2.NgayTra IS NULL
+              AND pm2.NgayPhaiTra < pm.NgayMuon
+              AND pm2.MaPhieu <> pm.MaPhieu
+        )
+    )
+    BEGIN
+        RAISERROR(N'Độc giả đang có sách mượn quá hạn chưa trả.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+        GROUP BY pm.MaDG
+        HAVING
+        (
+            SELECT COUNT(*)
+            FROM dbo.ChiTietPM ct
+            INNER JOIN dbo.PhieuMuon pm2 ON ct.MaPhieu = pm2.MaPhieu
+            WHERE pm2.MaDG = pm.MaDG
+              AND pm2.NgayTra IS NULL
+        ) > @SoSachMuonToiDa
+    )
+    BEGIN
+        RAISERROR(N'Độc giả vượt quá số sách mượn tối đa.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.Sach s ON i.MaSach = s.MaSach
+        LEFT JOIN
+        (
+            SELECT MaSach, COUNT(*) AS SoLuongXoa
+            FROM deleted
+            GROUP BY MaSach
+        ) d ON i.MaSach = d.MaSach
+        WHERE s.SoLuongTon + ISNULL(d.SoLuongXoa, 0) - 1 < 0
+    )
+    BEGIN
+        RAISERROR(N'Sách không còn trong kho.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        WHERE EXISTS
+        (
+            SELECT 1
+            FROM dbo.ChiTietPM ct
+            INNER JOIN dbo.PhieuMuon pm ON ct.MaPhieu = pm.MaPhieu
+            WHERE ct.MaSach = i.MaSach
+              AND pm.NgayTra IS NULL
+              AND ct.MaCTPM <> i.MaCTPM
+        )
+    )
+    BEGIN
+        RAISERROR(N'Sách đang có người mượn.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    ;WITH DeltaSach AS
+    (
+        SELECT MaSach, SUM(Delta) AS SoLuongThayDoi
+        FROM
+        (
+            SELECT MaSach, -COUNT(*) AS Delta
+            FROM inserted
+            GROUP BY MaSach
+
+            UNION ALL
+
+            SELECT MaSach, COUNT(*) AS Delta
+            FROM deleted
+            GROUP BY MaSach
+        ) x
+        GROUP BY MaSach
+    )
+    UPDATE s
+    SET SoLuongTon = SoLuongTon + d.SoLuongThayDoi
+    FROM dbo.Sach s
+    INNER JOIN DeltaSach d ON s.MaSach = d.MaSach;
+
+    ;WITH ChangedSach AS
+    (
+        SELECT MaSach FROM inserted
+        UNION
+        SELECT MaSach FROM deleted
+    )
+    UPDATE s
+    SET TinhTrang = CASE WHEN s.SoLuongTon > 0 THEN N'Con' ELSE N'Dang muon' END
+    FROM dbo.Sach s
+    INNER JOIN ChangedSach cs ON s.MaSach = cs.MaSach
+    WHERE s.TinhTrang IN (N'Con', N'Dang muon');
+
     ;WITH ChangedPhieu AS
     (
         SELECT MaPhieu FROM inserted
@@ -246,7 +397,7 @@ BEGIN
     INNER JOIN ChangedPhieu cp ON pm.MaPhieu = cp.MaPhieu
     OUTER APPLY
     (
-        SELECT COUNT(*) AS SoLuong
+        SELECT SUM(SoLanMuon) AS SoLuong
         FROM dbo.ChiTietPM c
         WHERE c.MaPhieu = pm.MaPhieu
     ) ct;
@@ -273,12 +424,54 @@ BEGIN
 END
 GO
 
+CREATE TRIGGER dbo.TRG_DocGia_ValidateTuoi
+ON dbo.DocGia
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @SoTuoiDG INT;
+    DECLARE @SoTuoiDGToiDa INT;
+
+    SELECT TOP 1
+        @SoTuoiDG = SoTuoiDG,
+        @SoTuoiDGToiDa = SoTuoiDGToiDa
+    FROM dbo.ThamSo
+    ORDER BY MaThamSo;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        CROSS APPLY
+        (
+            SELECT
+                DATEDIFF(YEAR, i.NgaySinhDG, i.NgLapThe)
+                - CASE
+                    WHEN DATEADD(YEAR, DATEDIFF(YEAR, i.NgaySinhDG, i.NgLapThe), i.NgaySinhDG) > i.NgLapThe
+                    THEN 1 ELSE 0
+                  END AS Tuoi
+        ) t
+        WHERE t.Tuoi < @SoTuoiDG OR t.Tuoi > @SoTuoiDGToiDa
+    )
+    BEGIN
+        RAISERROR(N'Tuổi độc giả phải nằm trong khoảng quy định.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+END
+GO
+
 CREATE TRIGGER dbo.TRG_PhieuMuon_SetNgayPhaiTra
 ON dbo.PhieuMuon
 AFTER INSERT, UPDATE
 AS
 BEGIN
     SET NOCOUNT ON;
+
+    IF TRIGGER_NESTLEVEL() > 1
+        RETURN;
 
     DECLARE @SoNgayMuonToiDa INT;
     SELECT TOP 1 @SoNgayMuonToiDa = SoNgayMuonToiDa
@@ -290,6 +483,161 @@ BEGIN
     FROM dbo.PhieuMuon pm
     INNER JOIN inserted i ON pm.MaPhieu = i.MaPhieu
     WHERE pm.NgayMuon IS NOT NULL;
+END
+GO
+
+CREATE TRIGGER dbo.TRG_PhieuMuon_HandleTraSach
+ON dbo.PhieuMuon
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF TRIGGER_NESTLEVEL() > 1
+        RETURN;
+
+    DECLARE @TienPhat DECIMAL(18,2);
+    SELECT TOP 1 @TienPhat = TienPhat
+    FROM dbo.ThamSo
+    ORDER BY MaThamSo;
+
+    ;WITH ReturnedPhieu AS
+    (
+        SELECT i.MaPhieu, i.MaDG, i.NgayTra, i.NgayPhaiTra
+        FROM inserted i
+        INNER JOIN deleted d ON i.MaPhieu = d.MaPhieu
+        WHERE d.NgayTra IS NULL
+          AND i.NgayTra IS NOT NULL
+    )
+    UPDATE pm
+    SET TienPhatKyNay =
+        CASE
+            WHEN rp.NgayTra > rp.NgayPhaiTra
+            THEN DATEDIFF(DAY, rp.NgayPhaiTra, rp.NgayTra) * @TienPhat
+            ELSE 0
+        END
+    FROM dbo.PhieuMuon pm
+    INNER JOIN ReturnedPhieu rp ON pm.MaPhieu = rp.MaPhieu;
+
+    ;WITH ReturnedBooks AS
+    (
+        SELECT ct.MaSach, COUNT(*) AS SoLuongTra
+        FROM dbo.ChiTietPM ct
+        INNER JOIN inserted i ON ct.MaPhieu = i.MaPhieu
+        INNER JOIN deleted d ON i.MaPhieu = d.MaPhieu
+        WHERE d.NgayTra IS NULL
+          AND i.NgayTra IS NOT NULL
+        GROUP BY ct.MaSach
+    )
+    UPDATE s
+    SET SoLuongTon = SoLuongTon + rb.SoLuongTra
+    FROM dbo.Sach s
+    INNER JOIN ReturnedBooks rb ON s.MaSach = rb.MaSach;
+
+    ;WITH ReturnedBooks AS
+    (
+        SELECT ct.MaSach
+        FROM dbo.ChiTietPM ct
+        INNER JOIN inserted i ON ct.MaPhieu = i.MaPhieu
+        INNER JOIN deleted d ON i.MaPhieu = d.MaPhieu
+        WHERE d.NgayTra IS NULL
+          AND i.NgayTra IS NOT NULL
+    )
+    UPDATE s
+    SET TinhTrang = CASE WHEN s.SoLuongTon > 0 THEN N'Con' ELSE N'Dang muon' END
+    FROM dbo.Sach s
+    INNER JOIN ReturnedBooks rb ON s.MaSach = rb.MaSach
+    WHERE s.TinhTrang IN (N'Con', N'Dang muon');
+
+    ;WITH AffectedDocGia AS
+    (
+        SELECT MaDG FROM inserted
+        UNION
+        SELECT MaDG FROM deleted
+    )
+    UPDATE dg
+    SET TongNo =
+        CASE
+            WHEN ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0) < 0 THEN 0
+            ELSE ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0)
+        END
+    FROM dbo.DocGia dg
+    INNER JOIN AffectedDocGia adg ON dg.MaDG = adg.MaDG
+    OUTER APPLY
+    (
+        SELECT SUM(TienPhatKyNay) AS TongTienPhat
+        FROM dbo.PhieuMuon pm
+        WHERE pm.MaDG = dg.MaDG
+    ) f
+    OUTER APPLY
+    (
+        SELECT SUM(SoTienThu) AS TongTienThu
+        FROM dbo.PhieuThuTienPhat p
+        WHERE p.MaDG = dg.MaDG
+    ) pt;
+END
+GO
+
+CREATE TRIGGER dbo.TRG_Sach_ValidateNamXB
+ON dbo.Sach
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @ThoiGianXB INT;
+    SELECT TOP 1 @ThoiGianXB = ThoiGianXB
+    FROM dbo.ThamSo
+    ORDER BY MaThamSo;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        WHERE YEAR(GETDATE()) - i.NamXB > @ThoiGianXB
+           OR i.NamXB > YEAR(GETDATE())
+    )
+    BEGIN
+        RAISERROR(N'Chỉ nhận sách xuất bản trong khoảng năm hợp lệ.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+END
+GO
+
+CREATE TRIGGER dbo.TRG_PhieuThuTienPhat_RecalculateTongNo
+ON dbo.PhieuThuTienPhat
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    ;WITH AffectedDocGia AS
+    (
+        SELECT MaDG FROM inserted
+        UNION
+        SELECT MaDG FROM deleted
+    )
+    UPDATE dg
+    SET TongNo =
+        CASE
+            WHEN ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0) < 0 THEN 0
+            ELSE ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0)
+        END
+    FROM dbo.DocGia dg
+    INNER JOIN AffectedDocGia adg ON dg.MaDG = adg.MaDG
+    OUTER APPLY
+    (
+        SELECT SUM(TienPhatKyNay) AS TongTienPhat
+        FROM dbo.PhieuMuon pm
+        WHERE pm.MaDG = dg.MaDG
+    ) f
+    OUTER APPLY
+    (
+        SELECT SUM(SoTienThu) AS TongTienThu
+        FROM dbo.PhieuThuTienPhat p
+        WHERE p.MaDG = dg.MaDG
+    ) pt;
 END
 GO
 
@@ -462,13 +810,3 @@ INSERT INTO dbo.PhieuThuTienPhat (MaDG, NgayThu, TongNoLucThu, SoTienThu, ConLai
 VALUES
     (2, '2026-05-18', 2000, 0, 2000);
 GO
-
-USE QuanLyThuVien;
-SELECT * FROM ThamSo;
-SELECT * FROM TheLoai;
-SELECT * FROM TacGia;
-SELECT * FROM DocGia;
-SELECT * FROM Sach;
-SELECT * FROM PhieuMuon;
-SELECT * FROM PhieuThuTienPhat;
-SELECT * FROM TaiKhoan;
