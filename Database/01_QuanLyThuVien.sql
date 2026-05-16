@@ -397,7 +397,7 @@ BEGIN
     INNER JOIN ChangedPhieu cp ON pm.MaPhieu = cp.MaPhieu
     OUTER APPLY
     (
-        SELECT SUM(SoLanMuon) AS SoLuong
+        SELECT COUNT(*) AS SoLuong
         FROM dbo.ChiTietPM c
         WHERE c.MaPhieu = pm.MaPhieu
     ) ct;

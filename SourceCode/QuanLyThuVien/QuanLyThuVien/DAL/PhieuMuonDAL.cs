@@ -1,12 +1,100 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Data;
 using System.Data.SqlClient;
+using QuanLyThuVien.DTO;
 using QuanLyThuVien.UTILS;
 
 namespace QuanLyThuVien.DAL
 {
     public class PhieuMuonDAL
     {
+        private bool TraPhieuNoiBo(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            int maPhieu,
+            List<int> danhSachMaSach,
+            decimal tienPhatMoiNgay,
+            out decimal tienPhatKyNay,
+            out string thongBao)
+        {
+            const string selectPhieuQuery = @"
+                SELECT
+                    pm.NgayPhaiTra,
+                    ct.MaSach
+                FROM PhieuMuon pm
+                INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                WHERE pm.MaPhieu = @MaPhieu
+                  AND pm.NgayTra IS NULL";
+
+            List<int> sachTrongPhieu = new List<int>();
+            DateTime? ngayPhaiTra = null;
+
+            using (SqlCommand command = new SqlCommand(selectPhieuQuery, connection, transaction))
+            {
+                command.Parameters.AddWithValue("@MaPhieu", maPhieu);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        if (!ngayPhaiTra.HasValue)
+                        {
+                            ngayPhaiTra = Convert.ToDateTime(reader["NgayPhaiTra"]);
+                        }
+
+                        sachTrongPhieu.Add(Convert.ToInt32(reader["MaSach"]));
+                    }
+                }
+            }
+
+            if (!ngayPhaiTra.HasValue || sachTrongPhieu.Count == 0)
+            {
+                tienPhatKyNay = 0;
+                thongBao = "Phiếu mượn này đã được trả hoặc không tồn tại.";
+                return false;
+            }
+
+            List<int> danhSachMaSachKhongTrung = danhSachMaSach.Distinct().ToList();
+            bool chonDuTatCaSach = sachTrongPhieu.Count == danhSachMaSachKhongTrung.Count &&
+                                   sachTrongPhieu.All(maSach => danhSachMaSachKhongTrung.Contains(maSach));
+
+            if (!chonDuTatCaSach)
+            {
+                tienPhatKyNay = 0;
+                thongBao = "Vui lòng chọn đầy đủ tất cả sách thuộc cùng một phiếu mượn trước khi trả.";
+                return false;
+            }
+
+            DateTime ngayTra = DateTime.Today;
+            int soNgayTre = ngayTra > ngayPhaiTra.Value ? (ngayTra - ngayPhaiTra.Value).Days : 0;
+            tienPhatKyNay = soNgayTre * tienPhatMoiNgay;
+
+            const string updatePhieuQuery = @"
+                UPDATE PhieuMuon
+                SET NgayTra = @NgayTra,
+                    TienPhatKyNay = @TienPhatKyNay
+                WHERE MaPhieu = @MaPhieu
+                  AND NgayTra IS NULL";
+
+            using (SqlCommand command = new SqlCommand(updatePhieuQuery, connection, transaction))
+            {
+                command.Parameters.AddWithValue("@NgayTra", ngayTra);
+                command.Parameters.AddWithValue("@TienPhatKyNay", tienPhatKyNay);
+                command.Parameters.AddWithValue("@MaPhieu", maPhieu);
+
+                if (command.ExecuteNonQuery() != 1)
+                {
+                    thongBao = "Không thể cập nhật trạng thái trả sách cho phiếu mượn.";
+                    return false;
+                }
+            }
+
+            thongBao = "Trả sách thành công. Tiền phạt kỳ này: " + tienPhatKyNay.ToString("N0") + "đ";
+            return true;
+        }
+
         private DataRow LayThamSo(SqlConnection connection, SqlTransaction transaction)
         {
             const string query = @"
@@ -268,6 +356,31 @@ namespace QuanLyThuVien.DAL
 
         public bool TraSach(int maPhieu, int maSach, out string thongBao)
         {
+            List<ChiTietPMDTO> danhSachTra = new List<ChiTietPMDTO>
+            {
+                new ChiTietPMDTO
+                {
+                    MaPhieu = maPhieu,
+                    MaSach = maSach
+                }
+            };
+
+            return TraNhieuSach(danhSachTra, out thongBao);
+        }
+
+        public bool TraNhieuSach(List<ChiTietPMDTO> danhSachTra, out string thongBao)
+        {
+            if (danhSachTra == null || danhSachTra.Count == 0)
+            {
+                thongBao = "Danh sách sách cần trả không hợp lệ.";
+                return false;
+            }
+
+            List<ChiTietPMDTO> danhSachKhongTrung = danhSachTra
+                .GroupBy(item => new { item.MaPhieu, item.MaSach })
+                .Select(group => group.First())
+                .ToList();
+
             using (SqlConnection connection = DbHelper.GetConnection())
             {
                 connection.Open();
@@ -277,52 +390,35 @@ namespace QuanLyThuVien.DAL
                     {
                         DataRow thamSo = LayThamSo(connection, transaction);
                         decimal tienPhatMoiNgay = Convert.ToDecimal(thamSo["TienPhat"]);
+                        decimal tongTienPhatKyNay = 0;
 
-                        const string selectPhieuQuery = @"
-                            SELECT MaDG, NgayPhaiTra
-                            FROM PhieuMuon
-                            WHERE MaPhieu = @MaPhieu AND NgayTra IS NULL";
-
-                        int maDG;
-                        DateTime ngayPhaiTra;
-
-                        using (SqlCommand command = new SqlCommand(selectPhieuQuery, connection, transaction))
+                        foreach (var nhomPhieu in danhSachKhongTrung.GroupBy(item => item.MaPhieu))
                         {
-                            command.Parameters.AddWithValue("@MaPhieu", maPhieu);
-                            using (SqlDataReader reader = command.ExecuteReader())
+                            decimal tienPhatKyNay;
+                            string thongBaoLoi;
+                            List<int> danhSachMaSach = nhomPhieu.Select(item => item.MaSach).ToList();
+
+                            bool thanhCong = TraPhieuNoiBo(
+                                connection,
+                                transaction,
+                                nhomPhieu.Key,
+                                danhSachMaSach,
+                                tienPhatMoiNgay,
+                                out tienPhatKyNay,
+                                out thongBaoLoi);
+
+                            if (!thanhCong)
                             {
-                                if (!reader.Read())
-                                {
-                                    thongBao = "Phiếu mượn này đã được trả hoặc không tồn tại.";
-                                    transaction.Rollback();
-                                    return false;
-                                }
-
-                                maDG = Convert.ToInt32(reader["MaDG"]);
-                                ngayPhaiTra = Convert.ToDateTime(reader["NgayPhaiTra"]);
+                                transaction.Rollback();
+                                thongBao = thongBaoLoi;
+                                return false;
                             }
-                        }
 
-                        DateTime ngayTra = DateTime.Today;
-                        int soNgayTre = ngayTra > ngayPhaiTra ? (ngayTra - ngayPhaiTra).Days : 0;
-                        decimal tienPhatKyNay = soNgayTre * tienPhatMoiNgay;
-
-                        const string updatePhieuQuery = @"
-                            UPDATE PhieuMuon
-                            SET NgayTra = @NgayTra,
-                                TienPhatKyNay = @TienPhatKyNay
-                            WHERE MaPhieu = @MaPhieu AND NgayTra IS NULL";
-
-                        using (SqlCommand command = new SqlCommand(updatePhieuQuery, connection, transaction))
-                        {
-                            command.Parameters.AddWithValue("@NgayTra", ngayTra);
-                            command.Parameters.AddWithValue("@TienPhatKyNay", tienPhatKyNay);
-                            command.Parameters.AddWithValue("@MaPhieu", maPhieu);
-                            command.ExecuteNonQuery();
+                            tongTienPhatKyNay += tienPhatKyNay;
                         }
 
                         transaction.Commit();
-                        thongBao = "Trả sách thành công. Tiền phạt kỳ này: " + tienPhatKyNay.ToString("N0") + "đ";
+                        thongBao = "Trả " + danhSachKhongTrung.Count + " sách thành công. Tổng tiền phạt kỳ này: " + tongTienPhatKyNay.ToString("N0") + "đ";
                         return true;
                     }
                     catch (Exception ex)

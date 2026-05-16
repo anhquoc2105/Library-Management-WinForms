@@ -1,10 +1,10 @@
 using System;
 using System.Data;
 using System.Drawing;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using QuanLyThuVien.BUS;
+using QuanLyThuVien.DTO;
 
 namespace QuanLyThuVien.GUI
 {
@@ -22,6 +22,7 @@ namespace QuanLyThuVien.GUI
         private TextBox txtTienPhatKyNay;
         private TextBox txtTongNo;
         private DataGridView dgvSachDangMuon;
+        private bool dangDongBoLuaChon;
         private Button btnTraSach;
         private Button btnTaiLai;
         private Button btnDong;
@@ -240,6 +241,7 @@ namespace QuanLyThuVien.GUI
         {
             if (e.RowIndex >= 0 && dgvSachDangMuon.Columns[e.ColumnIndex].Name == "ChonTra")
             {
+                DongBoLuaChonTheoPhieu(e.RowIndex);
                 CapNhatThongTinPhieu();
             }
         }
@@ -257,37 +259,23 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
-            int soSachTraThanhCong = 0;
-            decimal tongTienPhatThucTe = 0;
-
-            foreach (DataGridViewRow row in selectedRows)
-            {
-                int maPhieu = Convert.ToInt32(row.Cells["MaPhieu"].Value);
-                int maSach = Convert.ToInt32(row.Cells["MaSachGoc"].Value);
-                string thongBao;
-
-                bool thanhCong = phieuMuonBUS.TraSach(maPhieu, maSach, out thongBao);
-                if (!thanhCong)
+            var danhSachTra = selectedRows
+                .Select(row => new ChiTietPMDTO
                 {
-                    MessageBox.Show(thongBao, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    TaiDuLieu();
-                    return;
-                }
+                    MaPhieu = Convert.ToInt32(row.Cells["MaPhieu"].Value),
+                    MaSach = Convert.ToInt32(row.Cells["MaSachGoc"].Value)
+                })
+                .ToList();
 
-                decimal tienPhatDuKien = decimal.Parse(
-                    row.Cells["TienPhatDuKienGoc"].Value.ToString(),
-                    CultureInfo.InvariantCulture);
-
-                tongTienPhatThucTe += tienPhatDuKien;
-                soSachTraThanhCong++;
-            }
+            string thongBao;
+            bool thanhCong = phieuMuonBUS.TraNhieuSach(danhSachTra, out thongBao);
 
             TaiDuLieu();
             MessageBox.Show(
-                "Trả " + soSachTraThanhCong + " sách thành công. Tổng tiền phạt kỳ này: " + tongTienPhatThucTe.ToString("N0") + "đ",
-                "Thông báo",
+                thongBao,
+                thanhCong ? "Thông báo" : "Lỗi",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+                thanhCong ? MessageBoxIcon.Information : MessageBoxIcon.Error);
         }
 
         private void TaiDuLieu()
@@ -357,6 +345,35 @@ namespace QuanLyThuVien.GUI
             dgvSachDangMuon.DataSource = table;
             DinhDangBangSachDangMuon();
             CapNhatThongTinPhieu();
+        }
+
+        private void DongBoLuaChonTheoPhieu(int rowIndex)
+        {
+            if (dangDongBoLuaChon || rowIndex < 0 || rowIndex >= dgvSachDangMuon.Rows.Count)
+            {
+                return;
+            }
+
+            DataGridViewRow rowGoc = dgvSachDangMuon.Rows[rowIndex];
+            int maPhieu = Convert.ToInt32(rowGoc.Cells["MaPhieu"].Value);
+            bool daChon = Convert.ToBoolean(rowGoc.Cells["ChonTra"].Value);
+
+            dangDongBoLuaChon = true;
+            try
+            {
+                foreach (DataGridViewRow row in dgvSachDangMuon.Rows)
+                {
+                    if (Convert.ToInt32(row.Cells["MaPhieu"].Value) == maPhieu &&
+                        Convert.ToBoolean(row.Cells["ChonTra"].Value) != daChon)
+                    {
+                        row.Cells["ChonTra"].Value = daChon;
+                    }
+                }
+            }
+            finally
+            {
+                dangDongBoLuaChon = false;
+            }
         }
 
         private DataTable TaoBangHienThiTheoDocGia()
@@ -465,7 +482,8 @@ namespace QuanLyThuVien.GUI
             decimal tongTienPhatDuKien = dgvSachDangMuon.Rows
                 .Cast<DataGridViewRow>()
                 .Where(row => Convert.ToBoolean(row.Cells["ChonTra"].Value))
-                .Sum(row => Convert.ToDecimal(row.Cells["TienPhatDuKienGoc"].Value));
+                .GroupBy(row => Convert.ToInt32(row.Cells["MaPhieu"].Value))
+                .Sum(group => Convert.ToDecimal(group.First().Cells["TienPhatDuKienGoc"].Value));
 
             txtTienPhatKyNay.Text = tongTienPhatDuKien.ToString("N0");
             txtTongNo.Text = (tongNoHienTai + tongTienPhatDuKien).ToString("N0");
