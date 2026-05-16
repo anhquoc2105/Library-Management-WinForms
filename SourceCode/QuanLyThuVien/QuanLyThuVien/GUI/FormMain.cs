@@ -160,18 +160,8 @@ namespace QuanLyThuVien.GUI
             lblMoTa.AutoSize = true;
             lblMoTa.Location = new Point(38, 76);
 
-            Label lblBadge = new Label();
-            lblBadge.Text = "DOC GIA";
-            lblBadge.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            lblBadge.ForeColor = Color.FromArgb(28, 77, 125);
-            lblBadge.BackColor = Color.FromArgb(230, 239, 249);
-            lblBadge.TextAlign = ContentAlignment.MiddleCenter;
-            lblBadge.Size = new Size(110, 32);
-            lblBadge.Location = new Point(794, 28);
-
             pnlHero.Controls.Add(lblChaoMung);
             pnlHero.Controls.Add(lblMoTa);
-            pnlHero.Controls.Add(lblBadge);
 
             TableLayoutPanel tblDocGia = new TableLayoutPanel();
             tblDocGia.Location = new Point(28, 188);

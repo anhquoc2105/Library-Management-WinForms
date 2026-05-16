@@ -160,6 +160,14 @@ namespace QuanLyThuVien.GUI
             dgvLichSuMuon.Columns["TienPhatKyNay"].HeaderText = "Tiền phạt kỳ này";
             dgvLichSuMuon.Columns["TrangThaiMuon"].HeaderText = "Trạng thái mượn";
 
+            dgvLichSuMuon.Columns["MaPhieu"].FillWeight = 75;
+            dgvLichSuMuon.Columns["TenSach"].FillWeight = 130;
+            dgvLichSuMuon.Columns["NgayMuon"].FillWeight = 95;
+            dgvLichSuMuon.Columns["NgayPhaiTra"].FillWeight = 105;
+            dgvLichSuMuon.Columns["NgayTra"].FillWeight = 95;
+            dgvLichSuMuon.Columns["TienPhatKyNay"].FillWeight = 95;
+            dgvLichSuMuon.Columns["TrangThaiMuon"].FillWeight = 95;
+
             dgvLichSuMuon.ClearSelection();
         }
     }
