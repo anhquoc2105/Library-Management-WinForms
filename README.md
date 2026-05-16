@@ -1,7 +1,8 @@
-# QuanLyThuVien
+# Quản lý thư viện
 
 Ứng dụng quản lý thư viện trên desktop được xây dựng bằng **C# WinForms** và **SQL Server**, phục vụ các nghiệp vụ cơ bản trong thư viện như quản lý sách, quản lý độc giả, mượn sách, trả sách, thu tiền phạt và xem báo cáo.
 
+---
 ## Giới thiệu
 
 Project được tổ chức theo mô hình 3 lớp:
@@ -148,7 +149,8 @@ Dữ liệu mẫu trong script SQL có sẵn các tài khoản sau:
 - Project hiện phù hợp cho mục đích học tập, demo hoặc làm đồ án môn học
 - Nếu đang mở file `.exe`, việc build lại có thể bị khóa file đầu ra; chỉ cần đóng ứng dụng rồi build lại
 - Nếu bạn thay đổi schema database, nên kiểm tra lại các trigger và phần `DAL`
-
+---
 ## Tác giả
 
-README này được viết lại dựa trên mã nguồn hiện có trong project.
+**Họ và Tên:** Thái Công Anh Quốc
+**Gmail:** anhquoc212005@gmail.com
