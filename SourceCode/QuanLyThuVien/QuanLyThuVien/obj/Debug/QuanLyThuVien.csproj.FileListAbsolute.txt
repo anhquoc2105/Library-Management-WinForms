@@ -1,0 +1,10 @@
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\bin\Debug\QuanLyThuVien.exe.config
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\bin\Debug\QuanLyThuVien.exe
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\bin\Debug\QuanLyThuVien.pdb
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.csproj.AssemblyReference.cache
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.GUI.FormDangNhap.resources
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.Properties.Resources.resources
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.csproj.GenerateResource.cache
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.csproj.CoreCompileInputs.cache
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.exe
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\obj\Debug\QuanLyThuVien.pdb

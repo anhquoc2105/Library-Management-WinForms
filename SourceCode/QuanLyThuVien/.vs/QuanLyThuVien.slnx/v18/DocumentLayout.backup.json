@@ -1,0 +1,85 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|c:\\users\\dell\\desktop\\quanlythuvien\\sourcecode\\quanlythuvien\\quanlythuvien\\gui\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|solutionrelative:quanlythuvien\\gui\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|c:\\users\\dell\\desktop\\quanlythuvien\\sourcecode\\quanlythuvien\\quanlythuvien\\gui\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|solutionrelative:quanlythuvien\\gui\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|c:\\users\\dell\\desktop\\quanlythuvien\\sourcecode\\quanlythuvien\\quanlythuvien\\gui\\formdangnhap.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|solutionrelative:quanlythuvien\\gui\\formdangnhap.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|c:\\users\\dell\\desktop\\quanlythuvien\\sourcecode\\quanlythuvien\\quanlythuvien\\gui\\formbaocao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{7E1B2F6F-E8C7-4F3E-A062-B182D61A4349}|QuanLyThuVien\\QuanLyThuVien.csproj|solutionrelative:quanlythuvien\\gui\\formbaocao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "FormMain.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormMain.cs",
+              "RelativeDocumentMoniker": "QuanLyThuVien\\GUI\\FormMain.cs",
+              "ToolTip": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormMain.cs",
+              "RelativeToolTip": "QuanLyThuVien\\GUI\\FormMain.cs",
+              "ViewState": "AgIAAEIAAAAAAAAAAAAYwEkAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T08:09:59.651Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FormMain.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormMain.cs",
+              "RelativeDocumentMoniker": "QuanLyThuVien\\GUI\\FormMain.cs",
+              "ToolTip": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormMain.cs [Design]",
+              "RelativeToolTip": "QuanLyThuVien\\GUI\\FormMain.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T08:09:55.718Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FormDangNhap.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormDangNhap.cs",
+              "RelativeDocumentMoniker": "QuanLyThuVien\\GUI\\FormDangNhap.cs",
+              "ToolTip": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormDangNhap.cs [Design]",
+              "RelativeToolTip": "QuanLyThuVien\\GUI\\FormDangNhap.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T08:09:54.855Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FormBaoCao.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormBaoCao.cs",
+              "RelativeDocumentMoniker": "QuanLyThuVien\\GUI\\FormBaoCao.cs",
+              "ToolTip": "C:\\Users\\Dell\\Desktop\\quanlythuvien\\SourceCode\\QuanLyThuVien\\QuanLyThuVien\\GUI\\FormBaoCao.cs [Design]",
+              "RelativeToolTip": "QuanLyThuVien\\GUI\\FormBaoCao.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T08:09:53.558Z",
+              "EditorCaption": " [Design]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
