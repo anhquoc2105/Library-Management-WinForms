@@ -296,12 +296,9 @@ namespace QuanLyThuVien.DAL
                     pm.NgayTra,
                     pm.TienPhatKyNay,
                     CASE
-                        WHEN s.TinhTrang = N'Con' THEN N'Còn'
-                        WHEN s.TinhTrang = N'Dang muon' THEN N'Đang mượn'
-                        WHEN s.TinhTrang = N'Hong' THEN N'Hỏng'
-                        WHEN s.TinhTrang = N'Mat' THEN N'Mất'
-                        ELSE s.TinhTrang
-                    END AS TinhTrang
+                        WHEN pm.NgayTra IS NULL THEN N'Đang mượn'
+                        ELSE N'Đã trả'
+                    END AS TrangThaiMuon
                 FROM DocGia dg
                 INNER JOIN PhieuMuon pm ON dg.MaDG = pm.MaDG
                 INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu

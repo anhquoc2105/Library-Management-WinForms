@@ -158,7 +158,7 @@ namespace QuanLyThuVien.GUI
             dgvLichSuMuon.Columns["NgayPhaiTra"].HeaderText = "Ngày phải trả";
             dgvLichSuMuon.Columns["NgayTra"].HeaderText = "Ngày trả";
             dgvLichSuMuon.Columns["TienPhatKyNay"].HeaderText = "Tiền phạt kỳ này";
-            dgvLichSuMuon.Columns["TinhTrang"].HeaderText = "Tình trạng sách";
+            dgvLichSuMuon.Columns["TrangThaiMuon"].HeaderText = "Trạng thái mượn";
 
             dgvLichSuMuon.ClearSelection();
         }

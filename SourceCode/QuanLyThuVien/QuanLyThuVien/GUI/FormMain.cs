@@ -9,6 +9,7 @@ namespace QuanLyThuVien.GUI
         private Label lblTieuDe;
         private Label lblXinChao;
         private Panel pnlContainer;
+        private Label lblMoTa;
         private TableLayoutPanel tblMenu;
         private Button btnQuanLySach;
         private Button btnQuanLyDocGia;
@@ -66,22 +67,6 @@ namespace QuanLyThuVien.GUI
             pnlContainer.BackColor = Color.White;
             pnlContainer.BorderStyle = BorderStyle.FixedSingle;
 
-            tblMenu = new TableLayoutPanel();
-            tblMenu.Location = new Point(36, 28);
-            tblMenu.Size = new Size(928, chieuCaoBang);
-            tblMenu.ColumnCount = 3;
-            tblMenu.RowCount = soHangMenu;
-            tblMenu.BackColor = Color.White;
-
-            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
-            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
-            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34F));
-
-            for (int i = 0; i < soHangMenu; i++)
-            {
-                tblMenu.RowStyles.Add(new RowStyle(SizeType.Absolute, 100F));
-            }
-
             btnQuanLySach = TaoButton("Tiếp nhận sách");
             btnQuanLyDocGia = TaoButton("Lập thẻ độc giả");
             btnMuonSach = TaoButton("Cho mượn sách");
@@ -104,6 +89,39 @@ namespace QuanLyThuVien.GUI
             btnSuaQuyDinh.Click += (sender, e) => new FormSuaQuyDinh().ShowDialog();
             btnDangXuat.Click += btnDangXuat_Click;
 
+            if (laDocGia)
+            {
+                TaoGiaoDienDocGia(tenDangNhap);
+            }
+            else
+            {
+                TaoGiaoDienThuThu(soHangMenu, chieuCaoBang);
+            }
+
+            Controls.Add(lblTieuDe);
+            Controls.Add(lblXinChao);
+            Controls.Add(pnlContainer);
+            PhanQuyen(vaiTro);
+        }
+
+        private void TaoGiaoDienThuThu(int soHangMenu, int chieuCaoBang)
+        {
+            tblMenu = new TableLayoutPanel();
+            tblMenu.Location = new Point(36, 28);
+            tblMenu.Size = new Size(928, chieuCaoBang);
+            tblMenu.ColumnCount = 3;
+            tblMenu.RowCount = soHangMenu;
+            tblMenu.BackColor = Color.White;
+
+            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            tblMenu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34F));
+
+            for (int i = 0; i < soHangMenu; i++)
+            {
+                tblMenu.RowStyles.Add(new RowStyle(SizeType.Absolute, 100F));
+            }
+
             ThemNutVaoBang(btnQuanLySach, 0, 0);
             ThemNutVaoBang(btnQuanLyDocGia, 1, 0);
             ThemNutVaoBang(btnMuonSach, 2, 0);
@@ -116,17 +134,83 @@ namespace QuanLyThuVien.GUI
             ThemNutVaoBang(btnSuaQuyDinh, 1, 2);
             ThemNutVaoBang(btnDangXuat, 2, 2);
 
-            if (laDocGia)
-            {
-                ThemNutVaoBang(btnThongTinCaNhan, 1, 3);
-            }
-
             pnlContainer.Controls.Add(tblMenu);
+        }
 
-            Controls.Add(lblTieuDe);
-            Controls.Add(lblXinChao);
-            Controls.Add(pnlContainer);
-            PhanQuyen(vaiTro);
+        private void TaoGiaoDienDocGia(string tenDangNhap)
+        {
+            pnlContainer.BackColor = Color.FromArgb(247, 250, 253);
+
+            Panel pnlHero = new Panel();
+            pnlHero.Location = new Point(28, 24);
+            pnlHero.Size = new Size(944, 140);
+            pnlHero.BackColor = Color.FromArgb(28, 77, 125);
+
+            Label lblChaoMung = new Label();
+            lblChaoMung.Text = "Xin chào, " + tenDangNhap;
+            lblChaoMung.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            lblChaoMung.ForeColor = Color.White;
+            lblChaoMung.AutoSize = true;
+            lblChaoMung.Location = new Point(34, 26);
+
+            lblMoTa = new Label();
+            lblMoTa.Text = "Khu vực dành cho độc giả: tra cứu sách, xem thông tin cá nhân và quản lý phiên đăng nhập.";
+            lblMoTa.Font = new Font("Segoe UI", 11.5F);
+            lblMoTa.ForeColor = Color.FromArgb(222, 233, 243);
+            lblMoTa.AutoSize = true;
+            lblMoTa.Location = new Point(38, 76);
+
+            Label lblBadge = new Label();
+            lblBadge.Text = "DOC GIA";
+            lblBadge.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblBadge.ForeColor = Color.FromArgb(28, 77, 125);
+            lblBadge.BackColor = Color.FromArgb(230, 239, 249);
+            lblBadge.TextAlign = ContentAlignment.MiddleCenter;
+            lblBadge.Size = new Size(110, 32);
+            lblBadge.Location = new Point(794, 28);
+
+            pnlHero.Controls.Add(lblChaoMung);
+            pnlHero.Controls.Add(lblMoTa);
+            pnlHero.Controls.Add(lblBadge);
+
+            TableLayoutPanel tblDocGia = new TableLayoutPanel();
+            tblDocGia.Location = new Point(28, 188);
+            tblDocGia.Size = new Size(944, 278);
+            tblDocGia.ColumnCount = 3;
+            tblDocGia.RowCount = 2;
+            tblDocGia.BackColor = Color.Transparent;
+            tblDocGia.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tblDocGia.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 0F));
+            tblDocGia.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tblDocGia.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tblDocGia.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+
+            Control cardTraCuuSach = TaoTheTinhNang(
+                "Tra cứu sách",
+                "Tìm nhanh sách theo mã, tên, thể loại hoặc tác giả đang có trong thư viện.",
+                Color.FromArgb(28, 77, 125),
+                btnTraCuuSach_Click);
+
+            Control cardThongTinCaNhan = TaoTheTinhNang(
+                "Thông tin cá nhân",
+                "Xem hồ sơ độc giả, ngày lập thẻ và lịch sử mượn sách của bạn.",
+                Color.FromArgb(42, 102, 148),
+                btnThongTinCaNhan_Click);
+
+            Control cardDangXuat = TaoTheTinhNang(
+                "Đăng xuất",
+                "Kết thúc phiên làm việc hiện tại và quay lại màn hình đăng nhập.",
+                Color.FromArgb(90, 105, 120),
+                btnDangXuat_Click);
+
+            tblDocGia.Controls.Add(cardTraCuuSach, 0, 0);
+            tblDocGia.Controls.Add(cardThongTinCaNhan, 2, 0);
+            tblDocGia.Controls.Add(cardDangXuat, 0, 1);
+            tblDocGia.SetColumnSpan(cardDangXuat, 3);
+            cardDangXuat.Margin = new Padding(236, 12, 236, 12);
+
+            pnlContainer.Controls.Add(pnlHero);
+            pnlContainer.Controls.Add(tblDocGia);
         }
 
         private Button TaoButton(string text)
@@ -143,6 +227,57 @@ namespace QuanLyThuVien.GUI
             button.Font = new Font("Segoe UI", 13.5F, FontStyle.Bold);
             button.Cursor = Cursors.Hand;
             return button;
+        }
+
+        private Control TaoTheTinhNang(string title, string description, Color accentColor, EventHandler onClick)
+        {
+            Panel panel = new Panel();
+            panel.Dock = DockStyle.Fill;
+            panel.Margin = new Padding(12);
+            panel.BackColor = Color.White;
+            panel.BorderStyle = BorderStyle.FixedSingle;
+            panel.Cursor = Cursors.Hand;
+
+            Panel accent = new Panel();
+            accent.Dock = DockStyle.Top;
+            accent.Height = 10;
+            accent.BackColor = accentColor;
+
+            Label lblTitle = new Label();
+            lblTitle.Text = title;
+            lblTitle.Font = new Font("Segoe UI", 17F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.FromArgb(28, 77, 125);
+            lblTitle.AutoSize = true;
+            lblTitle.Location = new Point(24, 26);
+            lblTitle.Cursor = Cursors.Hand;
+
+            Label lblDescription = new Label();
+            lblDescription.Text = description;
+            lblDescription.Font = new Font("Segoe UI", 11F);
+            lblDescription.ForeColor = Color.FromArgb(90, 105, 120);
+            lblDescription.Size = new Size(380, 76);
+            lblDescription.Location = new Point(24, 66);
+            lblDescription.Cursor = Cursors.Hand;
+
+            Label lblAction = new Label();
+            lblAction.Text = "Mo chuc nang";
+            lblAction.Font = new Font("Segoe UI", 10.5F, FontStyle.Bold);
+            lblAction.ForeColor = accentColor;
+            lblAction.AutoSize = true;
+            lblAction.Location = new Point(24, 150);
+            lblAction.Cursor = Cursors.Hand;
+
+            panel.Click += onClick;
+            accent.Click += onClick;
+            lblTitle.Click += onClick;
+            lblDescription.Click += onClick;
+            lblAction.Click += onClick;
+
+            panel.Controls.Add(accent);
+            panel.Controls.Add(lblTitle);
+            panel.Controls.Add(lblDescription);
+            panel.Controls.Add(lblAction);
+            return panel;
         }
 
         private void ThemNutVaoBang(Control control, int col, int row)
@@ -164,6 +299,16 @@ namespace QuanLyThuVien.GUI
 
             btnTraCuuSach.Visible = true;
             btnThongTinCaNhan.Visible = laDocGia;
+        }
+
+        private void btnTraCuuSach_Click(object sender, EventArgs e)
+        {
+            new FormTraCuuSach().ShowDialog();
+        }
+
+        private void btnThongTinCaNhan_Click(object sender, EventArgs e)
+        {
+            new FormThongTinCaNhan().ShowDialog();
         }
 
         private void btnDangXuat_Click(object sender, EventArgs e)
