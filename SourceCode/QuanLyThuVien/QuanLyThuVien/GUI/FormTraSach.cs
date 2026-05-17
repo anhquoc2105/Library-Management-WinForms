@@ -386,6 +386,7 @@ namespace QuanLyThuVien.GUI
             table.Columns.Add("TenDG", typeof(string));
             table.Columns.Add("TongNo", typeof(decimal));
             table.Columns.Add("MaSach", typeof(string));
+            table.Columns.Add("TenSach", typeof(string));
             table.Columns.Add("NgayMuon", typeof(string));
             table.Columns.Add("SoNgayMuon", typeof(int));
             table.Columns.Add("TienPhatDuKien", typeof(string));
@@ -416,6 +417,7 @@ namespace QuanLyThuVien.GUI
                     sourceRow["TenDG"],
                     sourceRow["TongNo"],
                     Convert.ToInt32(sourceRow["MaSach"]).ToString("D5"),
+                    sourceRow["TenSach"],
                     Convert.ToDateTime(sourceRow["NgayMuon"]).ToString("dd/MM/yyyy"),
                     sourceRow["SoNgayMuon"],
                     tienPhatDuKien.ToString("N0"),
@@ -434,6 +436,7 @@ namespace QuanLyThuVien.GUI
 
             dgvSachDangMuon.Columns["ChonTra"].HeaderText = "Chọn";
             dgvSachDangMuon.Columns["STT"].HeaderText = "STT";
+            dgvSachDangMuon.Columns["TenSach"].HeaderText = "Tên sách";
             dgvSachDangMuon.Columns["MaSach"].HeaderText = "Mã sách";
             dgvSachDangMuon.Columns["NgayMuon"].HeaderText = "Ngày mượn";
             dgvSachDangMuon.Columns["SoNgayMuon"].HeaderText = "Số ngày mượn";
@@ -441,6 +444,7 @@ namespace QuanLyThuVien.GUI
 
             dgvSachDangMuon.Columns["ChonTra"].FillWeight = 45;
             dgvSachDangMuon.Columns["STT"].FillWeight = 50;
+            dgvSachDangMuon.Columns["TenSach"].FillWeight = 180;
             dgvSachDangMuon.Columns["MaSach"].FillWeight = 100;
             dgvSachDangMuon.Columns["NgayMuon"].FillWeight = 120;
             dgvSachDangMuon.Columns["SoNgayMuon"].FillWeight = 110;
@@ -448,6 +452,7 @@ namespace QuanLyThuVien.GUI
 
             dgvSachDangMuon.Columns["ChonTra"].ReadOnly = false;
             dgvSachDangMuon.Columns["STT"].ReadOnly = true;
+            dgvSachDangMuon.Columns["TenSach"].ReadOnly = true;
             dgvSachDangMuon.Columns["MaSach"].ReadOnly = true;
             dgvSachDangMuon.Columns["NgayMuon"].ReadOnly = true;
             dgvSachDangMuon.Columns["SoNgayMuon"].ReadOnly = true;
