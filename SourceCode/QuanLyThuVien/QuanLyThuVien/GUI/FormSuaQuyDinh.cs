@@ -36,6 +36,8 @@ namespace QuanLyThuVien.GUI
         private Button btnDong;
 
         private int maThamSoHienTai;
+        private int? maTheLoaiDangChon;
+        private bool isLoading;
 
         public FormSuaQuyDinh()
         {
@@ -119,6 +121,7 @@ namespace QuanLyThuVien.GUI
             dgvTheLoai.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
             dgvTheLoai.RowTemplate.Height = 36;
             dgvTheLoai.CellClick += dgvTheLoai_CellClick;
+            dgvTheLoai.SelectionChanged += dgvTheLoai_SelectionChanged;
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblMoTa);
@@ -201,6 +204,7 @@ namespace QuanLyThuVien.GUI
 
         private void TaiTheLoai()
         {
+            isLoading = true;
             dgvTheLoai.DataSource = theLoaiBUS.LayDanhSachTheLoai();
             if (dgvTheLoai.Columns.Count > 0)
             {
@@ -209,6 +213,9 @@ namespace QuanLyThuVien.GUI
             }
 
             dgvTheLoai.ClearSelection();
+            maTheLoaiDangChon = null;
+            txtTenTheLoai.Clear();
+            isLoading = false;
         }
 
         private void btnLuuThamSo_Click(object sender, EventArgs e)
@@ -262,21 +269,21 @@ namespace QuanLyThuVien.GUI
             if (thanhCong)
             {
                 txtTenTheLoai.Clear();
+                maTheLoaiDangChon = null;
                 TaiTheLoai();
             }
         }
 
         private void btnSuaTheLoai_Click(object sender, EventArgs e)
         {
-            if (dgvTheLoai.CurrentRow == null)
+            if (!maTheLoaiDangChon.HasValue)
             {
                 MessageBox.Show("Vui lòng chọn thể loại cần sửa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            int maTheLoai = Convert.ToInt32(dgvTheLoai.CurrentRow.Cells["MaTheLoai"].Value);
             string thongBao;
-            bool thanhCong = theLoaiBUS.CapNhatTheLoai(maTheLoai, txtTenTheLoai.Text.Trim(), out thongBao);
+            bool thanhCong = theLoaiBUS.CapNhatTheLoai(maTheLoaiDangChon.Value, txtTenTheLoai.Text.Trim(), out thongBao);
 
             MessageBox.Show(
                 thongBao,
@@ -287,21 +294,21 @@ namespace QuanLyThuVien.GUI
             if (thanhCong)
             {
                 txtTenTheLoai.Clear();
+                maTheLoaiDangChon = null;
                 TaiTheLoai();
             }
         }
 
         private void btnXoaTheLoai_Click(object sender, EventArgs e)
         {
-            if (dgvTheLoai.CurrentRow == null)
+            if (!maTheLoaiDangChon.HasValue)
             {
                 MessageBox.Show("Vui lòng chọn thể loại cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            int maTheLoai = Convert.ToInt32(dgvTheLoai.CurrentRow.Cells["MaTheLoai"].Value);
             string thongBao;
-            bool thanhCong = theLoaiBUS.XoaTheLoai(maTheLoai, out thongBao);
+            bool thanhCong = theLoaiBUS.XoaTheLoai(maTheLoaiDangChon.Value, out thongBao);
 
             MessageBox.Show(
                 thongBao,
@@ -312,6 +319,7 @@ namespace QuanLyThuVien.GUI
             if (thanhCong)
             {
                 txtTenTheLoai.Clear();
+                maTheLoaiDangChon = null;
                 TaiTheLoai();
             }
         }
@@ -323,7 +331,58 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
-            txtTenTheLoai.Text = dgvTheLoai.Rows[e.RowIndex].Cells["TenTheLoai"].Value.ToString();
+            CapNhatTheLoaiDangChon(dgvTheLoai.Rows[e.RowIndex]);
+        }
+
+        private void dgvTheLoai_SelectionChanged(object sender, EventArgs e)
+        {
+            if (isLoading)
+            {
+                return;
+            }
+
+            if (dgvTheLoai.CurrentRow == null || dgvTheLoai.CurrentRow.IsNewRow)
+            {
+                return;
+            }
+
+            CapNhatTheLoaiDangChon(dgvTheLoai.CurrentRow);
+        }
+
+        private void CapNhatTheLoaiDangChon(DataGridViewRow row)
+        {
+            if (row == null || row.Cells["MaTheLoai"].Value == null)
+            {
+                maTheLoaiDangChon = null;
+                txtTenTheLoai.Clear();
+                TaiThamSo();
+                return;
+            }
+
+            maTheLoaiDangChon = Convert.ToInt32(row.Cells["MaTheLoai"].Value);
+            txtTenTheLoai.Text = row.Cells["TenTheLoai"].Value == null
+                ? string.Empty
+                : row.Cells["TenTheLoai"].Value.ToString();
+            TaiThamSoTheoTheLoai(maTheLoaiDangChon.Value);
+        }
+
+        private void TaiThamSoTheoTheLoai(int maTheLoai)
+        {
+            DataRow row = thamSoBUS.LayThamSoTheoTheLoai(maTheLoai);
+            if (row == null)
+            {
+                // Nếu chưa có tham số riêng cho thể loại này, tải tham số mặc định
+                TaiThamSo();
+                return;
+            }
+
+            maThamSoHienTai = Convert.ToInt32(row["MaThamSo"]);
+            txtGiaTriThe.Text = row["GiaTriThe"].ToString();
+            txtSoTuoiToiThieu.Text = row["SoTuoiDG"].ToString();
+            txtSoTuoiToiDa.Text = row["SoTuoiDGToiDa"].ToString();
+            txtThoiGianXB.Text = row["ThoiGianXB"].ToString();
+            txtSoSachMuonToiDa.Text = row["SoSachMuonToiDa"].ToString();
+            txtSoNgayMuonToiDa.Text = row["SoNgayMuonToiDa"].ToString();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
@@ -30,7 +31,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Cho mượn sách";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1000, 600);
+            ClientSize = new Size(1200, 700);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -58,11 +59,11 @@ namespace QuanLyThuVien.GUI
             cboDocGia = new ComboBox();
             cboDocGia.DropDownStyle = ComboBoxStyle.DropDownList;
             cboDocGia.Location = new Point(40, 136);
-            cboDocGia.Size = new Size(340, 30);
+            cboDocGia.Size = new Size(400, 30);
 
-            btnLapPhieu = TaoButton("Lập phiếu mượn", 590, 128, 160, Color.FromArgb(28, 77, 125), Color.White);
-            btnTaiLai = TaoButton("Tải lại", 770, 128, 108, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
-            btnDong = TaoButton("Đóng", 892, 128, 108, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnLapPhieu = TaoButton("Lập phiếu mượn", 740, 128, 180, Color.FromArgb(28, 77, 125), Color.White);
+            btnTaiLai = TaoButton("Tải lại", 940, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnDong = TaoButton("Đóng", 1074, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
             btnLapPhieu.Click += btnLapPhieu_Click;
             btnTaiLai.Click += btnTaiLai_Click;
@@ -70,13 +71,12 @@ namespace QuanLyThuVien.GUI
 
             dgvSachCon = new DataGridView();
             dgvSachCon.Location = new Point(24, 200);
-            dgvSachCon.Size = new Size(940, 360);
-            dgvSachCon.ReadOnly = true;
+            dgvSachCon.Size = new Size(1150, 470);
             dgvSachCon.AllowUserToAddRows = false;
             dgvSachCon.AllowUserToDeleteRows = false;
             dgvSachCon.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvSachCon.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvSachCon.MultiSelect = false;
+            dgvSachCon.MultiSelect = true;
             dgvSachCon.BackgroundColor = Color.White;
             dgvSachCon.BorderStyle = BorderStyle.None;
             dgvSachCon.RowHeadersVisible = false;
@@ -90,6 +90,7 @@ namespace QuanLyThuVien.GUI
             dgvSachCon.DefaultCellStyle.SelectionForeColor = Color.FromArgb(36, 52, 71);
             dgvSachCon.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
             dgvSachCon.RowTemplate.Height = 36;
+            dgvSachCon.CellContentClick += dgvSachCon_CellContentClick;
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblMoTa);
@@ -136,6 +137,20 @@ namespace QuanLyThuVien.GUI
             DinhDangCot();
         }
 
+        private void dgvSachCon_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+
+            if (dgvSachCon.Columns[e.ColumnIndex].Name == "Chon")
+            {
+                // Commit edit ngay để checkbox phản hồi tức thì
+                dgvSachCon.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
         private void btnLapPhieu_Click(object sender, EventArgs e)
         {
             if (cboDocGia.SelectedValue == null)
@@ -144,27 +159,68 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
-            if (dgvSachCon.CurrentRow == null)
+            // Thu thập danh sách sách được chọn qua checkbox
+            List<int> danhSachMaSach = new List<int>();
+            foreach (DataGridViewRow row in dgvSachCon.Rows)
             {
-                MessageBox.Show("Vui lòng chọn sách cần mượn.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (row.IsNewRow)
+                {
+                    continue;
+                }
+
+                object cellValue = row.Cells["Chon"].Value;
+                if (cellValue != null && Convert.ToBoolean(cellValue))
+                {
+                    danhSachMaSach.Add(Convert.ToInt32(row.Cells["MaSach"].Value));
+                }
+            }
+
+            if (danhSachMaSach.Count == 0)
+            {
+                MessageBox.Show("Vui lòng đánh dấu chọn ít nhất một sách cần mượn.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             int maDG = Convert.ToInt32(cboDocGia.SelectedValue);
-            int maSach = Convert.ToInt32(dgvSachCon.CurrentRow.Cells["MaSach"].Value);
-            string thongBao;
 
-            bool thanhCong = phieuMuonBUS.LapPhieuMuon(maDG, maSach, out thongBao);
-            MessageBox.Show(
-                thongBao,
-                thanhCong ? "Thông báo" : "Lỗi",
-                MessageBoxButtons.OK,
-                thanhCong ? MessageBoxIcon.Information : MessageBoxIcon.Error);
+            // Mượn từng cuốn sách và gom kết quả
+            List<string> thanhCongList = new List<string>();
+            List<string> thatBaiList = new List<string>();
 
-            if (thanhCong)
+            foreach (int maSach in danhSachMaSach)
             {
-                TaiDuLieu();
+                string thongBao;
+                bool thanhCong = phieuMuonBUS.LapPhieuMuon(maDG, maSach, out thongBao);
+                if (thanhCong)
+                {
+                    thanhCongList.Add("Sách " + maSach + ": " + thongBao);
+                }
+                else
+                {
+                    thatBaiList.Add("Sách " + maSach + ": " + thongBao);
+                }
             }
+
+            string ketQua = "";
+            if (thanhCongList.Count > 0)
+            {
+                ketQua += "Thành công (" + thanhCongList.Count + " sách):\n" + string.Join("\n", thanhCongList);
+            }
+
+            if (thatBaiList.Count > 0)
+            {
+                if (ketQua.Length > 0)
+                {
+                    ketQua += "\n\n";
+                }
+
+                ketQua += "Thất bại (" + thatBaiList.Count + " sách):\n" + string.Join("\n", thatBaiList);
+            }
+
+            MessageBoxIcon icon = thatBaiList.Count == 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning;
+            MessageBox.Show(ketQua, "Kết quả lập phiếu mượn", MessageBoxButtons.OK, icon);
+
+            TaiDuLieu();
         }
 
         private void DinhDangCot()
@@ -174,14 +230,38 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
+            // Thêm cột checkbox "Chọn" nếu chưa có
+            if (dgvSachCon.Columns["Chon"] == null)
+            {
+                DataGridViewCheckBoxColumn colChon = new DataGridViewCheckBoxColumn();
+                colChon.Name = "Chon";
+                colChon.HeaderText = "Chọn";
+                colChon.Width = 50;
+                colChon.FillWeight = 30;
+                colChon.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                colChon.Width = 60;
+                dgvSachCon.Columns.Insert(0, colChon);
+            }
+
+            // Đặt lại ReadOnly: tất cả cột đều readonly TRỪ cột Chọn
+            dgvSachCon.ReadOnly = false;
+            foreach (DataGridViewColumn col in dgvSachCon.Columns)
+            {
+                col.ReadOnly = col.Name != "Chon";
+            }
+
             if (dgvSachCon.Columns["MaSach"] != null) dgvSachCon.Columns["MaSach"].HeaderText = "Mã sách";
             if (dgvSachCon.Columns["TenSach"] != null) dgvSachCon.Columns["TenSach"].HeaderText = "Tên sách";
             if (dgvSachCon.Columns["TenTheLoai"] != null) dgvSachCon.Columns["TenTheLoai"].HeaderText = "Thể loại";
             if (dgvSachCon.Columns["TenTG"] != null) dgvSachCon.Columns["TenTG"].HeaderText = "Tác giả";
             if (dgvSachCon.Columns["NamXB"] != null) dgvSachCon.Columns["NamXB"].HeaderText = "Năm XB";
             if (dgvSachCon.Columns["NhaXB"] != null) dgvSachCon.Columns["NhaXB"].HeaderText = "Nhà XB";
-            if (dgvSachCon.Columns["TriGia"] != null) dgvSachCon.Columns["TriGia"].HeaderText = "Trị giá";
-            if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].HeaderText = "Số lượng còn";
+            if (dgvSachCon.Columns["TriGia"] != null)
+            {
+                dgvSachCon.Columns["TriGia"].HeaderText = "Trị giá";
+                dgvSachCon.Columns["TriGia"].DefaultCellStyle.Format = "N0";
+            }
+            if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].HeaderText = "Số lượng";
             if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].HeaderText = "Tình trạng";
             if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].HeaderText = "Ngày nhập";
 

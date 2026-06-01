@@ -14,6 +14,11 @@ namespace QuanLyThuVien.BUS
             return thamSoDAL.LayDanhSachThamSo();
         }
 
+        public DataRow LayThamSoTheoTheLoai(int maTheLoai)
+        {
+            return thamSoDAL.LayThamSoTheoTheLoai(maTheLoai);
+        }
+
         public bool CapNhatThamSo(
             int maThamSo,
             int giaTriThe,

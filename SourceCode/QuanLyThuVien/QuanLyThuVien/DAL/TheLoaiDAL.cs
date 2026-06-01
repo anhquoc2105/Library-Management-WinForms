@@ -13,7 +13,7 @@ namespace QuanLyThuVien.DAL
                     MaTheLoai,
                     TenTheLoai
                 FROM TheLoai
-                ORDER BY TenTheLoai";
+                ORDER BY MaTheLoai";
 
             return DbHelper.ExecuteQuery(query);
         }
@@ -29,8 +29,26 @@ namespace QuanLyThuVien.DAL
                 return false;
             }
 
-            const string insertQuery = "INSERT INTO TheLoai (TenTheLoai) VALUES (@TenTheLoai)";
-            int rows = DbHelper.ExecuteNonQuery(insertQuery, new SqlParameter("@TenTheLoai", tenTheLoai));
+            // Tìm mã thể loại nhỏ nhất chưa được sử dụng (lấp khoảng trống)
+            const string nextIdQuery = @"
+                SELECT MIN(t.NextId)
+                FROM (
+                    SELECT 1 AS NextId
+                    WHERE NOT EXISTS (SELECT 1 FROM TheLoai WHERE MaTheLoai = 1)
+                    UNION ALL
+                    SELECT MaTheLoai + 1
+                    FROM TheLoai tl
+                    WHERE NOT EXISTS (SELECT 1 FROM TheLoai WHERE MaTheLoai = tl.MaTheLoai + 1)
+                ) t";
+            int nextId = (int)DbHelper.ExecuteScalar(nextIdQuery);
+
+            const string insertQuery = @"
+                SET IDENTITY_INSERT TheLoai ON;
+                INSERT INTO TheLoai (MaTheLoai, TenTheLoai) VALUES (@MaTheLoai, @TenTheLoai);
+                SET IDENTITY_INSERT TheLoai OFF;";
+            int rows = DbHelper.ExecuteNonQuery(insertQuery,
+                new SqlParameter("@MaTheLoai", nextId),
+                new SqlParameter("@TenTheLoai", tenTheLoai));
             thongBao = rows > 0 ? "Thêm thể loại thành công." : "Không thể thêm thể loại.";
             return rows > 0;
         }
