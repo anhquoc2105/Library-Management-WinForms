@@ -331,26 +331,6 @@ BEGIN
         RETURN;
     END
 
-    IF EXISTS
-    (
-        SELECT 1
-        FROM inserted i
-        WHERE EXISTS
-        (
-            SELECT 1
-            FROM dbo.ChiTietPM ct
-            INNER JOIN dbo.PhieuMuon pm ON ct.MaPhieu = pm.MaPhieu
-            WHERE ct.MaSach = i.MaSach
-              AND pm.NgayTra IS NULL
-              AND ct.MaCTPM <> i.MaCTPM
-        )
-    )
-    BEGIN
-        RAISERROR(N'Sách đang có người mượn.', 16, 1);
-        ROLLBACK TRANSACTION;
-        RETURN;
-    END
-
     ;WITH DeltaSach AS
     (
         SELECT MaSach, SUM(Delta) AS SoLuongThayDoi
