@@ -118,6 +118,7 @@ namespace QuanLyThuVien.GUI
                     dgvThamSo.Columns["SoSachMuonToiDa"].HeaderText = "Sách mượn tối đa";
                     dgvThamSo.Columns["SoNgayMuonToiDa"].HeaderText = "Ngày mượn tối đa";
                     dgvThamSo.Columns["TienPhat"].HeaderText = "Tiền phạt/ngày";
+                    dgvThamSo.Columns["TienPhat"].DefaultCellStyle.Format = "N0";
                 }
 
                 dgvThamSo.ClearSelection();

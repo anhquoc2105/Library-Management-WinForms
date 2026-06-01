@@ -30,7 +30,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Thông tin cá nhân";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1000, 600);
+            ClientSize = new Size(1160, 720);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -48,14 +48,14 @@ namespace QuanLyThuVien.GUI
             lblEmailDG = TaoLabel("Email: ", 40, 168);
             lblNgayLapThe = TaoLabel("Ngày lập thẻ: ", 40, 202);
 
-            btnTaiLai = TaoButton("Tải lại", 770, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
-            btnDong = TaoButton("Đóng", 886, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnTaiLai = TaoButton("Tải lại", 910, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnDong = TaoButton("Đóng", 1026, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
             btnTaiLai.Click += btnTaiLai_Click;
             btnDong.Click += (sender, e) => Close();
 
             dgvLichSuMuon = new DataGridView();
-            dgvLichSuMuon.Location = new Point(24, 260);
-            dgvLichSuMuon.Size = new Size(940, 300);
+            dgvLichSuMuon.Location = new Point(24, 250);
+            dgvLichSuMuon.Size = new Size(1112, 430);
             dgvLichSuMuon.ReadOnly = true;
             dgvLichSuMuon.AllowUserToAddRows = false;
             dgvLichSuMuon.AllowUserToDeleteRows = false;
@@ -68,12 +68,12 @@ namespace QuanLyThuVien.GUI
             dgvLichSuMuon.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(237, 242, 247);
             dgvLichSuMuon.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(36, 52, 71);
             dgvLichSuMuon.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            dgvLichSuMuon.ColumnHeadersHeight = 42;
+            dgvLichSuMuon.ColumnHeadersHeight = 46;
             dgvLichSuMuon.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvLichSuMuon.DefaultCellStyle.SelectionBackColor = Color.FromArgb(220, 232, 246);
             dgvLichSuMuon.DefaultCellStyle.SelectionForeColor = Color.FromArgb(36, 52, 71);
             dgvLichSuMuon.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
-            dgvLichSuMuon.RowTemplate.Height = 36;
+            dgvLichSuMuon.RowTemplate.Height = 40;
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblTenDG);
@@ -159,6 +159,8 @@ namespace QuanLyThuVien.GUI
             dgvLichSuMuon.Columns["NgayTra"].HeaderText = "Ngày trả";
             dgvLichSuMuon.Columns["TienPhatKyNay"].HeaderText = "Tiền phạt kỳ này";
             dgvLichSuMuon.Columns["TrangThaiMuon"].HeaderText = "Trạng thái mượn";
+
+            dgvLichSuMuon.Columns["TienPhatKyNay"].DefaultCellStyle.Format = "N0";
 
             dgvLichSuMuon.Columns["MaPhieu"].FillWeight = 75;
             dgvLichSuMuon.Columns["TenSach"].FillWeight = 130;

@@ -38,7 +38,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Lập thẻ độc giả";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1120, 680);
+            ClientSize = new Size(1340, 780);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -60,10 +60,10 @@ namespace QuanLyThuVien.GUI
 
             lblTenDG = TaoLabel("Họ và tên", 40, 110);
             lblLoaiDG = TaoLabel("Loại độc giả", 400, 110);
-            lblNgaySinh = TaoLabel("Ngày sinh", 760, 110);
+            lblNgaySinh = TaoLabel("Ngày sinh", 880, 110);
             lblDiaChi = TaoLabel("Địa chỉ", 40, 180);
             lblEmail = TaoLabel("Email", 400, 180);
-            lblNgayLapThe = TaoLabel("Ngày lập thẻ", 760, 180);
+            lblNgayLapThe = TaoLabel("Ngày lập thẻ", 880, 180);
 
             txtTenDG = TaoTextBox(40, 136, 300);
 
@@ -76,29 +76,29 @@ namespace QuanLyThuVien.GUI
 
             dtpNgaySinh = new DateTimePicker();
             dtpNgaySinh.Format = DateTimePickerFormat.Short;
-            dtpNgaySinh.Location = new Point(760, 136);
-            dtpNgaySinh.Size = new Size(300, 26);
+            dtpNgaySinh.Location = new Point(880, 136);
+            dtpNgaySinh.Size = new Size(400, 26);
 
             txtDiaChi = TaoTextBox(40, 206, 300);
             txtEmail = TaoTextBox(400, 206, 300);
 
             dtpNgayLapThe = new DateTimePicker();
             dtpNgayLapThe.Format = DateTimePickerFormat.Short;
-            dtpNgayLapThe.Location = new Point(760, 206);
-            dtpNgayLapThe.Size = new Size(300, 26);
+            dtpNgayLapThe.Location = new Point(880, 206);
+            dtpNgayLapThe.Size = new Size(400, 26);
             dtpNgayLapThe.Value = DateTime.Today;
 
-            btnLapThe = TaoButton("Lập thẻ", 730, 268, Color.FromArgb(28, 77, 125), Color.White);
-            btnTaiLai = TaoButton("Tải lại", 846, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
-            btnDong = TaoButton("Đóng", 962, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnLapThe = TaoButton("Lập thẻ", 950, 268, Color.FromArgb(28, 77, 125), Color.White);
+            btnTaiLai = TaoButton("Tải lại", 1066, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnDong = TaoButton("Đóng", 1182, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
             btnLapThe.Click += btnLapThe_Click;
             btnTaiLai.Click += btnTaiLai_Click;
             btnDong.Click += (sender, e) => Close();
 
             dgvDocGia = new DataGridView();
-            dgvDocGia.Location = new Point(24, 340);
-            dgvDocGia.Size = new Size(1060, 310);
+            dgvDocGia.Location = new Point(24, 330);
+            dgvDocGia.Size = new Size(1292, 420);
             dgvDocGia.ReadOnly = true;
             dgvDocGia.AllowUserToAddRows = false;
             dgvDocGia.AllowUserToDeleteRows = false;
@@ -111,12 +111,12 @@ namespace QuanLyThuVien.GUI
             dgvDocGia.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(237, 242, 247);
             dgvDocGia.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(36, 52, 71);
             dgvDocGia.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            dgvDocGia.ColumnHeadersHeight = 42;
+            dgvDocGia.ColumnHeadersHeight = 46;
             dgvDocGia.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvDocGia.DefaultCellStyle.SelectionBackColor = Color.FromArgb(220, 232, 246);
             dgvDocGia.DefaultCellStyle.SelectionForeColor = Color.FromArgb(36, 52, 71);
             dgvDocGia.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
-            dgvDocGia.RowTemplate.Height = 36;
+            dgvDocGia.RowTemplate.Height = 40;
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblMoTa);
@@ -238,6 +238,15 @@ namespace QuanLyThuVien.GUI
                     dgvDocGia.Columns["MaDG"].Visible = false;
                     dgvDocGia.Columns["TongNo"].Visible = false;
                     dgvDocGia.Columns["MaTaiKhoan"].Visible = false;
+
+                    dgvDocGia.Columns["MaDGHienThi"].FillWeight = 80;
+                    dgvDocGia.Columns["TenDG"].FillWeight = 190;
+                    dgvDocGia.Columns["LoaiDG"].FillWeight = 95;
+                    dgvDocGia.Columns["NgaySinhDG"].FillWeight = 105;
+                    dgvDocGia.Columns["DiaChiDG"].FillWeight = 160;
+                    dgvDocGia.Columns["EmailDG"].FillWeight = 170;
+                    dgvDocGia.Columns["NgLapThe"].FillWeight = 105;
+                    dgvDocGia.Columns["NgayHetHan"].FillWeight = 110;
                 }
 
                 dgvDocGia.ClearSelection();

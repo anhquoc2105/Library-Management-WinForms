@@ -41,7 +41,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Tiếp nhận sách mới";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1120, 680);
+            ClientSize = new Size(1340, 780);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -63,10 +63,10 @@ namespace QuanLyThuVien.GUI
 
             lblTenSach = TaoLabel("Tên sách", 40, 110);
             lblTheLoai = TaoLabel("Thể loại", 400, 110);
-            lblTacGia = TaoLabel("Tác giả", 760, 110);
+            lblTacGia = TaoLabel("Tác giả", 880, 110);
             lblNamXB = TaoLabel("Năm xuất bản", 40, 180);
             lblNhaXB = TaoLabel("Nhà xuất bản", 400, 180);
-            lblNgayNhap = TaoLabel("Ngày nhập", 760, 180);
+            lblNgayNhap = TaoLabel("Ngày nhập", 880, 180);
             lblTriGia = TaoLabel("Trị giá", 40, 250);
 
             txtTenSach = TaoTextBox(40, 136, 300);
@@ -78,31 +78,31 @@ namespace QuanLyThuVien.GUI
 
             cboTacGia = new ComboBox();
             cboTacGia.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboTacGia.Location = new Point(760, 136);
-            cboTacGia.Size = new Size(300, 26);
+            cboTacGia.Location = new Point(880, 136);
+            cboTacGia.Size = new Size(400, 26);
 
             txtNamXB = TaoTextBox(40, 206, 300);
             txtNhaXB = TaoTextBox(400, 206, 300);
 
             dtpNgayNhap = new DateTimePicker();
             dtpNgayNhap.Format = DateTimePickerFormat.Short;
-            dtpNgayNhap.Location = new Point(760, 206);
-            dtpNgayNhap.Size = new Size(300, 26);
+            dtpNgayNhap.Location = new Point(880, 206);
+            dtpNgayNhap.Size = new Size(400, 26);
             dtpNgayNhap.Value = DateTime.Today;
 
             txtTriGia = TaoTextBox(40, 276, 300);
 
-            btnTiepNhan = TaoButton("Tiếp nhận", 730, 268, Color.FromArgb(28, 77, 125), Color.White);
-            btnTaiLai = TaoButton("Tải lại", 846, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
-            btnDong = TaoButton("Đóng", 962, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnTiepNhan = TaoButton("Tiếp nhận", 950, 268, Color.FromArgb(28, 77, 125), Color.White);
+            btnTaiLai = TaoButton("Tải lại", 1066, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnDong = TaoButton("Đóng", 1182, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
             btnTiepNhan.Click += btnTiepNhan_Click;
             btnTaiLai.Click += btnTaiLai_Click;
             btnDong.Click += (sender, e) => Close();
 
             dgvSach = new DataGridView();
-            dgvSach.Location = new Point(24, 340);
-            dgvSach.Size = new Size(1060, 310);
+            dgvSach.Location = new Point(24, 330);
+            dgvSach.Size = new Size(1292, 420);
             dgvSach.ReadOnly = true;
             dgvSach.AllowUserToAddRows = false;
             dgvSach.AllowUserToDeleteRows = false;
@@ -115,12 +115,12 @@ namespace QuanLyThuVien.GUI
             dgvSach.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(237, 242, 247);
             dgvSach.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(36, 52, 71);
             dgvSach.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            dgvSach.ColumnHeadersHeight = 42;
+            dgvSach.ColumnHeadersHeight = 46;
             dgvSach.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvSach.DefaultCellStyle.SelectionBackColor = Color.FromArgb(220, 232, 246);
             dgvSach.DefaultCellStyle.SelectionForeColor = Color.FromArgb(36, 52, 71);
             dgvSach.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
-            dgvSach.RowTemplate.Height = 36;
+            dgvSach.RowTemplate.Height = 40;
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblMoTa);
@@ -281,6 +281,19 @@ namespace QuanLyThuVien.GUI
                     dgvSach.Columns["TriGia"].HeaderText = "Trị giá";
                     dgvSach.Columns["SoLuongTon"].HeaderText = "Số lượng còn";
                     dgvSach.Columns["TinhTrang"].HeaderText = "Tình trạng";
+
+                    dgvSach.Columns["TriGia"].DefaultCellStyle.Format = "N0";
+
+                    dgvSach.Columns["MaSach"].FillWeight = 70;
+                    dgvSach.Columns["TenSach"].FillWeight = 190;
+                    dgvSach.Columns["TenTheLoai"].FillWeight = 75;
+                    dgvSach.Columns["TenTG"].FillWeight = 105;
+                    dgvSach.Columns["NamXB"].FillWeight = 75;
+                    dgvSach.Columns["NhaXB"].FillWeight = 140;
+                    dgvSach.Columns["NgayNhap"].FillWeight = 105;
+                    dgvSach.Columns["TriGia"].FillWeight = 90;
+                    dgvSach.Columns["SoLuongTon"].FillWeight = 105;
+                    dgvSach.Columns["TinhTrang"].FillWeight = 105;
                 }
 
                 dgvSach.ClearSelection();

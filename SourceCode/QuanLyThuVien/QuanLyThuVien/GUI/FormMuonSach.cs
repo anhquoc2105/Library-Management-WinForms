@@ -31,7 +31,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Cho mượn sách";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1200, 700);
+            ClientSize = new Size(1340, 740);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -61,9 +61,9 @@ namespace QuanLyThuVien.GUI
             cboDocGia.Location = new Point(40, 136);
             cboDocGia.Size = new Size(400, 30);
 
-            btnLapPhieu = TaoButton("Lập phiếu mượn", 740, 128, 180, Color.FromArgb(28, 77, 125), Color.White);
-            btnTaiLai = TaoButton("Tải lại", 940, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
-            btnDong = TaoButton("Đóng", 1074, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnLapPhieu = TaoButton("Lập phiếu mượn", 880, 128, 180, Color.FromArgb(28, 77, 125), Color.White);
+            btnTaiLai = TaoButton("Tải lại", 1080, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnDong = TaoButton("Đóng", 1214, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
             btnLapPhieu.Click += btnLapPhieu_Click;
             btnTaiLai.Click += btnTaiLai_Click;
@@ -71,7 +71,7 @@ namespace QuanLyThuVien.GUI
 
             dgvSachCon = new DataGridView();
             dgvSachCon.Location = new Point(24, 200);
-            dgvSachCon.Size = new Size(1150, 470);
+            dgvSachCon.Size = new Size(1292, 500);
             dgvSachCon.AllowUserToAddRows = false;
             dgvSachCon.AllowUserToDeleteRows = false;
             dgvSachCon.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -84,12 +84,12 @@ namespace QuanLyThuVien.GUI
             dgvSachCon.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(237, 242, 247);
             dgvSachCon.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(36, 52, 71);
             dgvSachCon.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            dgvSachCon.ColumnHeadersHeight = 42;
+            dgvSachCon.ColumnHeadersHeight = 46;
             dgvSachCon.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvSachCon.DefaultCellStyle.SelectionBackColor = Color.FromArgb(220, 232, 246);
             dgvSachCon.DefaultCellStyle.SelectionForeColor = Color.FromArgb(36, 52, 71);
             dgvSachCon.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
-            dgvSachCon.RowTemplate.Height = 36;
+            dgvSachCon.RowTemplate.Height = 40;
             dgvSachCon.CellContentClick += dgvSachCon_CellContentClick;
 
             Controls.Add(lblTieuDe);
@@ -264,6 +264,17 @@ namespace QuanLyThuVien.GUI
             if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].HeaderText = "Số lượng";
             if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].HeaderText = "Tình trạng";
             if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].HeaderText = "Ngày nhập";
+
+            if (dgvSachCon.Columns["MaSach"] != null) dgvSachCon.Columns["MaSach"].FillWeight = 75;
+            if (dgvSachCon.Columns["TenSach"] != null) dgvSachCon.Columns["TenSach"].FillWeight = 210;
+            if (dgvSachCon.Columns["TenTheLoai"] != null) dgvSachCon.Columns["TenTheLoai"].FillWeight = 80;
+            if (dgvSachCon.Columns["TenTG"] != null) dgvSachCon.Columns["TenTG"].FillWeight = 105;
+            if (dgvSachCon.Columns["NamXB"] != null) dgvSachCon.Columns["NamXB"].FillWeight = 80;
+            if (dgvSachCon.Columns["NhaXB"] != null) dgvSachCon.Columns["NhaXB"].FillWeight = 140;
+            if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].FillWeight = 105;
+            if (dgvSachCon.Columns["TriGia"] != null) dgvSachCon.Columns["TriGia"].FillWeight = 90;
+            if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].FillWeight = 95;
+            if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].FillWeight = 100;
 
             dgvSachCon.ClearSelection();
         }
