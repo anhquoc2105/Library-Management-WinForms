@@ -267,11 +267,24 @@ namespace QuanLyThuVien.GUI
         {
             try
             {
-                dgvSach.DataSource = sachBUS.LayDanhSachSach();
+                DataTable danhSachSach = sachBUS.LayDanhSachSach();
+                if (!danhSachSach.Columns.Contains("MaSachHienThi"))
+                {
+                    danhSachSach.Columns.Add("MaSachHienThi", typeof(string));
+                }
+
+                foreach (DataRow row in danhSachSach.Rows)
+                {
+                    row["MaSachHienThi"] = Convert.ToInt32(row["MaSach"]).ToString("D5");
+                }
+
+                danhSachSach.Columns["MaSachHienThi"].SetOrdinal(0);
+                dgvSach.DataSource = danhSachSach;
 
                 if (dgvSach.Columns.Count > 0)
                 {
-                    dgvSach.Columns["MaSach"].HeaderText = "Mã sách";
+                    dgvSach.Columns["MaSachHienThi"].HeaderText = "Mã sách";
+                    dgvSach.Columns["MaSach"].Visible = false;
                     dgvSach.Columns["TenSach"].HeaderText = "Tên sách";
                     dgvSach.Columns["TenTheLoai"].HeaderText = "Thể loại";
                     dgvSach.Columns["TenTG"].HeaderText = "Tác giả";
@@ -284,7 +297,7 @@ namespace QuanLyThuVien.GUI
 
                     dgvSach.Columns["TriGia"].DefaultCellStyle.Format = "N0";
 
-                    dgvSach.Columns["MaSach"].FillWeight = 70;
+                    dgvSach.Columns["MaSachHienThi"].FillWeight = 70;
                     dgvSach.Columns["TenSach"].FillWeight = 190;
                     dgvSach.Columns["TenTheLoai"].FillWeight = 75;
                     dgvSach.Columns["TenTG"].FillWeight = 105;

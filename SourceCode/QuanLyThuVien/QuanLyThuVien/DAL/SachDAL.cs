@@ -95,7 +95,9 @@ namespace QuanLyThuVien.DAL
                     END AS TinhTrang
                 FROM Sach s
                 LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
-                WHERE (@MaSach = '' OR CAST(s.MaSach AS NVARCHAR(20)) LIKE N'%' + @MaSach + N'%')
+                WHERE (@MaSach = ''
+                       OR CAST(s.MaSach AS NVARCHAR(20)) LIKE N'%' + @MaSach + N'%'
+                       OR RIGHT('00000' + CAST(s.MaSach AS VARCHAR(5)), 5) LIKE '%' + @MaSach + '%')
                   AND (@TenSach = '' OR s.TenSach LIKE N'%' + @TenSach + N'%')
                   AND (@TheLoai = '' OR tl.TenTheLoai LIKE N'%' + @TheLoai + N'%')
                   AND (@TacGia = '' OR s.TenTG LIKE N'%' + @TacGia + N'%')

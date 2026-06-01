@@ -133,7 +133,19 @@ namespace QuanLyThuVien.GUI
             cboDocGia.DisplayMember = "TenDG";
             cboDocGia.ValueMember = "MaDG";
 
-            dgvSachCon.DataSource = sachBUS.LayDanhSachSachCon();
+            DataTable danhSachSachCon = sachBUS.LayDanhSachSachCon();
+            if (!danhSachSachCon.Columns.Contains("MaSachHienThi"))
+            {
+                danhSachSachCon.Columns.Add("MaSachHienThi", typeof(string));
+            }
+
+            foreach (DataRow row in danhSachSachCon.Rows)
+            {
+                row["MaSachHienThi"] = Convert.ToInt32(row["MaSach"]).ToString("D5");
+            }
+
+            danhSachSachCon.Columns["MaSachHienThi"].SetOrdinal(0);
+            dgvSachCon.DataSource = danhSachSachCon;
             DinhDangCot();
         }
 
@@ -250,7 +262,8 @@ namespace QuanLyThuVien.GUI
                 col.ReadOnly = col.Name != "Chon";
             }
 
-            if (dgvSachCon.Columns["MaSach"] != null) dgvSachCon.Columns["MaSach"].HeaderText = "Mã sách";
+            if (dgvSachCon.Columns["MaSachHienThi"] != null) dgvSachCon.Columns["MaSachHienThi"].HeaderText = "Mã sách";
+            if (dgvSachCon.Columns["MaSach"] != null) dgvSachCon.Columns["MaSach"].Visible = false;
             if (dgvSachCon.Columns["TenSach"] != null) dgvSachCon.Columns["TenSach"].HeaderText = "Tên sách";
             if (dgvSachCon.Columns["TenTheLoai"] != null) dgvSachCon.Columns["TenTheLoai"].HeaderText = "Thể loại";
             if (dgvSachCon.Columns["TenTG"] != null) dgvSachCon.Columns["TenTG"].HeaderText = "Tác giả";
@@ -265,7 +278,7 @@ namespace QuanLyThuVien.GUI
             if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].HeaderText = "Tình trạng";
             if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].HeaderText = "Ngày nhập";
 
-            if (dgvSachCon.Columns["MaSach"] != null) dgvSachCon.Columns["MaSach"].FillWeight = 75;
+            if (dgvSachCon.Columns["MaSachHienThi"] != null) dgvSachCon.Columns["MaSachHienThi"].FillWeight = 75;
             if (dgvSachCon.Columns["TenSach"] != null) dgvSachCon.Columns["TenSach"].FillWeight = 210;
             if (dgvSachCon.Columns["TenTheLoai"] != null) dgvSachCon.Columns["TenTheLoai"].FillWeight = 80;
             if (dgvSachCon.Columns["TenTG"] != null) dgvSachCon.Columns["TenTG"].FillWeight = 105;
