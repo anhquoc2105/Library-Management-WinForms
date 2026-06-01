@@ -94,15 +94,19 @@ BEGIN
         SELECT MaSach, SUM(Delta) AS SoLuongThayDoi
         FROM
         (
-            SELECT MaSach, -COUNT(*) AS Delta
-            FROM inserted
-            GROUP BY MaSach
+            SELECT i.MaSach, -COUNT(*) AS Delta
+            FROM inserted i
+            INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+            WHERE pm.NgayTra IS NULL
+            GROUP BY i.MaSach
 
             UNION ALL
 
-            SELECT MaSach, COUNT(*) AS Delta
-            FROM deleted
-            GROUP BY MaSach
+            SELECT d.MaSach, COUNT(*) AS Delta
+            FROM deleted d
+            INNER JOIN dbo.PhieuMuon pm ON d.MaPhieu = pm.MaPhieu
+            WHERE pm.NgayTra IS NULL
+            GROUP BY d.MaSach
         ) x
         GROUP BY MaSach
     )
@@ -142,3 +146,34 @@ BEGIN
 END
 GO
 
+;WITH SoLuongDangMuon AS
+(
+    SELECT ct.MaSach, COUNT(*) AS SoLuong
+    FROM dbo.ChiTietPM ct
+    INNER JOIN dbo.PhieuMuon pm ON ct.MaPhieu = pm.MaPhieu
+    WHERE pm.NgayTra IS NULL
+    GROUP BY ct.MaSach
+)
+UPDATE s
+SET
+    SoLuongTon =
+        CASE
+            WHEN s.SoLuongTon = 0 AND ISNULL(dm.SoLuong, 0) = 0 AND s.TinhTrang = N'Dang muon'
+            THEN 1
+            ELSE s.SoLuongTon
+        END,
+    TinhTrang =
+        CASE
+            WHEN s.TinhTrang IN (N'Hong', N'Mat') THEN s.TinhTrang
+            WHEN
+                CASE
+                    WHEN s.SoLuongTon = 0 AND ISNULL(dm.SoLuong, 0) = 0 AND s.TinhTrang = N'Dang muon'
+                    THEN 1
+                    ELSE s.SoLuongTon
+                END > 0
+            THEN N'Con'
+            ELSE N'Dang muon'
+        END
+FROM dbo.Sach s
+LEFT JOIN SoLuongDangMuon dm ON s.MaSach = dm.MaSach;
+GO

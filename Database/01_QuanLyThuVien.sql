@@ -336,15 +336,19 @@ BEGIN
         SELECT MaSach, SUM(Delta) AS SoLuongThayDoi
         FROM
         (
-            SELECT MaSach, -COUNT(*) AS Delta
-            FROM inserted
-            GROUP BY MaSach
+            SELECT i.MaSach, -COUNT(*) AS Delta
+            FROM inserted i
+            INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+            WHERE pm.NgayTra IS NULL
+            GROUP BY i.MaSach
 
             UNION ALL
 
-            SELECT MaSach, COUNT(*) AS Delta
-            FROM deleted
-            GROUP BY MaSach
+            SELECT d.MaSach, COUNT(*) AS Delta
+            FROM deleted d
+            INNER JOIN dbo.PhieuMuon pm ON d.MaPhieu = pm.MaPhieu
+            WHERE pm.NgayTra IS NULL
+            GROUP BY d.MaSach
         ) x
         GROUP BY MaSach
     )

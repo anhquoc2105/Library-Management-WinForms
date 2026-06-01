@@ -22,11 +22,10 @@ namespace QuanLyThuVien.DAL
                     s.TriGia,
                     s.SoLuongTon,
                     CASE
-                        WHEN s.TinhTrang = N'Con' THEN N'Còn'
-                        WHEN s.TinhTrang = N'Dang muon' THEN N'Đang mượn'
                         WHEN s.TinhTrang = N'Hong' THEN N'Hỏng'
                         WHEN s.TinhTrang = N'Mat' THEN N'Mất'
-                        ELSE s.TinhTrang
+                        WHEN s.SoLuongTon > 0 THEN N'Còn'
+                        ELSE N'Đang mượn'
                     END AS TinhTrang
                 FROM Sach s
                 LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
@@ -49,15 +48,14 @@ namespace QuanLyThuVien.DAL
                     s.TriGia,
                     s.SoLuongTon,
                     CASE
-                        WHEN s.TinhTrang = N'Con' THEN N'Còn'
-                        WHEN s.TinhTrang = N'Dang muon' THEN N'Đang mượn'
                         WHEN s.TinhTrang = N'Hong' THEN N'Hỏng'
                         WHEN s.TinhTrang = N'Mat' THEN N'Mất'
-                        ELSE s.TinhTrang
+                        WHEN s.SoLuongTon > 0 THEN N'Còn'
+                        ELSE N'Đang mượn'
                     END AS TinhTrang
                 FROM Sach s
                 LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
-                WHERE s.TinhTrang = N'Con' AND s.SoLuongTon > 0
+                WHERE s.TinhTrang NOT IN (N'Hong', N'Mat') AND s.SoLuongTon > 0
                 ORDER BY s.MaSach";
 
             return DbHelper.ExecuteQuery(query);
@@ -87,11 +85,10 @@ namespace QuanLyThuVien.DAL
                     s.TriGia,
                     s.SoLuongTon,
                     CASE
-                        WHEN s.TinhTrang = N'Con' THEN N'Còn'
-                        WHEN s.TinhTrang = N'Dang muon' THEN N'Đang mượn'
                         WHEN s.TinhTrang = N'Hong' THEN N'Hỏng'
                         WHEN s.TinhTrang = N'Mat' THEN N'Mất'
-                        ELSE s.TinhTrang
+                        WHEN s.SoLuongTon > 0 THEN N'Còn'
+                        ELSE N'Đang mượn'
                     END AS TinhTrang
                 FROM Sach s
                 LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
