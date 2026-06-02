@@ -570,25 +570,17 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    DECLARE @ThoiGianXB INT;
+    SELECT TOP 1 @ThoiGianXB = ThoiGianXB
+    FROM dbo.ThamSo
+    WHERE MaTheLoai IS NULL
+    ORDER BY MaThamSo;
+
     IF EXISTS
     (
         SELECT 1
         FROM inserted i
-        OUTER APPLY
-        (
-            SELECT TOP 1 ts.ThoiGianXB
-            FROM dbo.ThamSo ts
-            WHERE ts.MaTheLoai = i.MaTheLoai
-            ORDER BY ts.MaThamSo
-        ) tsTheLoai
-        OUTER APPLY
-        (
-            SELECT TOP 1 ts.ThoiGianXB
-            FROM dbo.ThamSo ts
-            WHERE ts.MaTheLoai IS NULL
-            ORDER BY ts.MaThamSo
-        ) tsMacDinh
-        WHERE YEAR(GETDATE()) - i.NamXB > ISNULL(tsTheLoai.ThoiGianXB, tsMacDinh.ThoiGianXB)
+        WHERE YEAR(GETDATE()) - i.NamXB > @ThoiGianXB
            OR i.NamXB > YEAR(GETDATE())
     )
     BEGIN
@@ -653,7 +645,9 @@ INSERT INTO dbo.TheLoai (TenTheLoai)
 VALUES
     (N'A'),
     (N'B'),
-    (N'C');
+    (N'C'),
+    (N'D'),
+    (N'E');
 GO
 
 ;WITH Numbers AS
@@ -674,7 +668,12 @@ INSERT INTO dbo.TaiKhoan (TenDangNhap, MatKhau)
 VALUES
     ('docgia01', '123456'),
     ('docgia02', '123456'),
-    ('thuthu01', 'admin123');
+    ('docgia03', '123456'),
+    ('docgia04', '123456'),
+    ('docgia05', '123456'),
+    ('docgia06', '123456'),
+    ('thuthu01', 'admin123'),
+    ('thuthu02', 'admin123');
 GO
 
 INSERT INTO dbo.DocGia
@@ -691,7 +690,11 @@ INSERT INTO dbo.DocGia
 )
 VALUES
     (N'Nguyễn Văn A', N'X', '2004-03-15', N'98 Yên Đỗ', 'a@gmail.com', '2026-05-01', NULL, 0, 1),
-    (N'Trần Thị B', N'Y', '1990-09-20', N'12 Lê Lợi', 'b@gmail.com', '2026-05-02', NULL, 2000, 2);
+    (N'Trần Thị B', N'Y', '1990-09-20', N'12 Lê Lợi', 'b@gmail.com', '2026-05-02', NULL, 2000, 2),
+    (N'Lê Minh Quốc', N'X', '2000-05-16', N'Dĩ An, Bình Dương', 'quoc.demo@gmail.com', '2026-05-16', NULL, 0, 3),
+    (N'Phạm Hoàng An', N'X', '1998-11-02', N'Thủ Đức, TP.HCM', 'an.demo@gmail.com', '2026-05-18', NULL, 0, 4),
+    (N'Võ Ngọc Nhi', N'Y', '2002-08-21', N'Biên Hòa, Đồng Nai', 'nhi.demo@gmail.com', '2026-05-20', NULL, 0, 5),
+    (N'Đặng Thành Tín', N'Y', '1995-12-09', N'Quận 1, TP.HCM', 'tin.demo@gmail.com', '2026-05-22', NULL, 1000, 6);
 GO
 
 INSERT INTO dbo.ThuThu
@@ -705,7 +708,8 @@ INSERT INTO dbo.ThuThu
     MaTaiKhoan
 )
 VALUES
-    (N'Lê Thị Thu', N'Nữ', '1998-07-10', 'thuthu01@gmail.com', N'Đồng Nai', N'Thủ thư chính', 3);
+    (N'Lê Thị Thu', N'Nữ', '1998-07-10', 'thuthu01@gmail.com', N'Đồng Nai', N'Thủ thư chính', 7),
+    (N'Nguyễn Minh Khang', N'Nam', '1996-04-12', 'thuthu02@gmail.com', N'TP.HCM', N'Hỗ trợ ca chiều', 8);
 GO
 
 INSERT INTO dbo.Sach
@@ -733,7 +737,7 @@ VALUES
         N'NXB Trẻ',
         '2026-05-01',
         30000,
-        1,
+        2,
         N'Con'
     ),
     (
@@ -746,7 +750,7 @@ VALUES
         N'NXB Giáo Dục',
         '2026-05-03',
         85000,
-        1,
+        2,
         N'Con'
     ),
     (
@@ -759,7 +763,7 @@ VALUES
         N'NXB Lao Động',
         '2026-05-04',
         92000,
-        1,
+        2,
         N'Con'
     ),
     (
@@ -774,33 +778,137 @@ VALUES
         96000,
         1,
         N'Con'
+    ),
+    (
+        N'Cấu Trúc Dữ Liệu',
+        N'B',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'B'),
+        N'Tác giả 005',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 005'),
+        2020,
+        N'NXB Đại Học Quốc Gia',
+        '2026-05-08',
+        78000,
+        3,
+        N'Con'
+    ),
+    (
+        N'Lập Trình C# Nâng Cao',
+        N'A',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'A'),
+        N'Tác giả 006',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 006'),
+        2021,
+        N'NXB Trẻ',
+        '2026-05-09',
+        105000,
+        2,
+        N'Con'
+    ),
+    (
+        N'Nhập Môn Cơ Sở Dữ Liệu',
+        N'C',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'C'),
+        N'Tác giả 007',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 007'),
+        2019,
+        N'NXB Giáo Dục',
+        '2026-05-11',
+        68000,
+        2,
+        N'Con'
+    ),
+    (
+        N'Thiết Kế Giao Diện WinForms',
+        N'D',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'D'),
+        N'Tác giả 008',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 008'),
+        2023,
+        N'NXB Thanh Niên',
+        '2026-05-12',
+        72000,
+        1,
+        N'Con'
+    ),
+    (
+        N'Phân Tích Thiết Kế Hệ Thống',
+        N'D',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'D'),
+        N'Tác giả 009',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 009'),
+        2022,
+        N'NXB Lao Động',
+        '2026-05-13',
+        88000,
+        2,
+        N'Con'
+    ),
+    (
+        N'Toán Rời Rạc',
+        N'E',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'E'),
+        N'Tác giả 010',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 010'),
+        2020,
+        N'NXB Khoa Học',
+        '2026-05-14',
+        64000,
+        2,
+        N'Con'
+    ),
+    (
+        N'Mạng Máy Tính',
+        N'E',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'E'),
+        N'Tác giả 011',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 011'),
+        2021,
+        N'NXB Bưu Điện',
+        '2026-05-15',
+        83000,
+        2,
+        N'Con'
+    ),
+    (
+        N'Kỹ Thuật Lập Trình',
+        N'A',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'A'),
+        N'Tác giả 012',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 012'),
+        2024,
+        N'NXB Trẻ',
+        '2026-05-16',
+        99000,
+        2,
+        N'Con'
     );
 GO
 
-INSERT INTO dbo.PhieuMuon (MaDG, NgayMuon, NgayPhaiTra, NgayTra, TienPhatKyNay)
+INSERT INTO dbo.PhieuMuon (MaDG, NgayMuon, NgayTra, TienPhatKyNay)
 VALUES
-    (1, '2026-05-10', '2026-05-14', NULL, 0),
-    (2, '2026-05-11', '2026-05-15', '2026-05-17', 2000);
+    (1, '2026-05-10', NULL, 0),
+    (2, '2026-05-11', '2026-05-17', 2000),
+    (3, '2026-05-18', NULL, 0),
+    (4, '2026-05-20', '2026-05-23', 0),
+    (5, '2026-05-24', NULL, 0),
+    (6, '2026-05-25', '2026-05-30', 1000);
 GO
 
 INSERT INTO dbo.ChiTietPM (MaPhieu, MaSach, NgayThang, SoLanMuon)
 VALUES
     (1, 1, '2026-05-10', 1),
-    (2, 2, '2026-05-11', 1);
-GO
-
-UPDATE dbo.Sach
-SET TinhTrang = N'Dang muon'
-WHERE MaSach IN
-(
-    SELECT ct.MaSach
-    FROM dbo.ChiTietPM ct
-    INNER JOIN dbo.PhieuMuon pm ON ct.MaPhieu = pm.MaPhieu
-    WHERE pm.NgayTra IS NULL
-);
+    (1, 5, '2026-05-10', 1),
+    (2, 2, '2026-05-11', 1),
+    (3, 6, '2026-05-18', 1),
+    (3, 7, '2026-05-18', 1),
+    (4, 3, '2026-05-20', 1),
+    (5, 8, '2026-05-24', 1),
+    (6, 10, '2026-05-25', 1);
 GO
 
 INSERT INTO dbo.PhieuThuTienPhat (MaDG, NgayThu, TongNoLucThu, SoTienThu, ConLai)
 VALUES
-    (2, '2026-05-18', 2000, 0, 2000);
+    (2, '2026-05-18', 2000, 0, 2000),
+    (6, '2026-05-31', 1000, 0, 1000);
 GO

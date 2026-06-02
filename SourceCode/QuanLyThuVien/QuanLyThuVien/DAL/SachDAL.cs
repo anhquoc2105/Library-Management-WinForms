@@ -249,25 +249,17 @@ namespace QuanLyThuVien.DAL
                 BEGIN
                     SET NOCOUNT ON;
 
+                    DECLARE @ThoiGianXB INT;
+                    SELECT TOP 1 @ThoiGianXB = ThoiGianXB
+                    FROM dbo.ThamSo
+                    WHERE MaTheLoai IS NULL
+                    ORDER BY MaThamSo;
+
                     IF EXISTS
                     (
                         SELECT 1
                         FROM inserted i
-                        OUTER APPLY
-                        (
-                            SELECT TOP 1 ts.ThoiGianXB
-                            FROM dbo.ThamSo ts
-                            WHERE ts.MaTheLoai = i.MaTheLoai
-                            ORDER BY ts.MaThamSo
-                        ) tsTheLoai
-                        OUTER APPLY
-                        (
-                            SELECT TOP 1 ts.ThoiGianXB
-                            FROM dbo.ThamSo ts
-                            WHERE ts.MaTheLoai IS NULL
-                            ORDER BY ts.MaThamSo
-                        ) tsMacDinh
-                        WHERE YEAR(GETDATE()) - i.NamXB > ISNULL(tsTheLoai.ThoiGianXB, tsMacDinh.ThoiGianXB)
+                        WHERE YEAR(GETDATE()) - i.NamXB > @ThoiGianXB
                            OR i.NamXB > YEAR(GETDATE())
                     )
                     BEGIN

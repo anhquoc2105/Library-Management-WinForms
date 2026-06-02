@@ -355,7 +355,6 @@ namespace QuanLyThuVien.GUI
             {
                 maTheLoaiDangChon = null;
                 txtTenTheLoai.Clear();
-                TaiThamSo();
                 return;
             }
 
@@ -363,26 +362,6 @@ namespace QuanLyThuVien.GUI
             txtTenTheLoai.Text = row.Cells["TenTheLoai"].Value == null
                 ? string.Empty
                 : row.Cells["TenTheLoai"].Value.ToString();
-            TaiThamSoTheoTheLoai(maTheLoaiDangChon.Value);
-        }
-
-        private void TaiThamSoTheoTheLoai(int maTheLoai)
-        {
-            DataRow row = thamSoBUS.LayThamSoTheoTheLoai(maTheLoai);
-            if (row == null)
-            {
-                // Nếu chưa có tham số riêng cho thể loại này, tải tham số mặc định
-                TaiThamSo();
-                return;
-            }
-
-            maThamSoHienTai = Convert.ToInt32(row["MaThamSo"]);
-            txtGiaTriThe.Text = row["GiaTriThe"].ToString();
-            txtSoTuoiToiThieu.Text = row["SoTuoiDG"].ToString();
-            txtSoTuoiToiDa.Text = row["SoTuoiDGToiDa"].ToString();
-            txtThoiGianXB.Text = row["ThoiGianXB"].ToString();
-            txtSoSachMuonToiDa.Text = row["SoSachMuonToiDa"].ToString();
-            txtSoNgayMuonToiDa.Text = row["SoNgayMuonToiDa"].ToString();
         }
     }
 }

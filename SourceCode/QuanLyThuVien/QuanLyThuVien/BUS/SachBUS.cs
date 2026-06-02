@@ -48,15 +48,7 @@ namespace QuanLyThuVien.BUS
 
         public bool ThemSach(SachDTO sach, out string thongBao)
         {
-            DataRow thamSo = sach.MaTheLoai.HasValue
-                ? thamSoDAL.LayThamSoTheoTheLoai(sach.MaTheLoai.Value)
-                : thamSoDAL.LayThamSoHienTai();
-
-            if (thamSo == null)
-            {
-                thamSo = thamSoDAL.LayThamSoHienTai();
-            }
-
+            DataRow thamSo = thamSoDAL.LayThamSoHienTai();
             if (thamSo == null)
             {
                 thongBao = "Không tìm thấy tham số hệ thống.";

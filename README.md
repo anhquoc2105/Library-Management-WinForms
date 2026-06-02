@@ -1,77 +1,124 @@
 # Quản lý thư viện
 
-Ứng dụng quản lý thư viện trên desktop được xây dựng bằng **C# WinForms** và **SQL Server**, phục vụ các nghiệp vụ cơ bản trong thư viện như quản lý sách, quản lý độc giả, mượn sách, trả sách, thu tiền phạt và xem báo cáo.
+Ứng dụng quản lý thư viện trên desktop, xây dựng bằng **C# WinForms** và **SQL Server**. Project phục vụ các nghiệp vụ cơ bản của thư viện như quản lý sách, lập thẻ độc giả, mượn sách, trả sách, thu tiền phạt, tra cứu và xem báo cáo.
 
----
-## Giới thiệu
+## Tổng quan
 
 Project được tổ chức theo mô hình 3 lớp:
 
-- `GUI`: giao diện người dùng
-- `BUS`: xử lý nghiệp vụ
-- `DAL`: truy cập dữ liệu
+- `GUI`: giao diện người dùng WinForms.
+- `BUS`: xử lý nghiệp vụ và kiểm tra dữ liệu trước khi ghi xuống database.
+- `DAL`: truy vấn và cập nhật dữ liệu SQL Server.
+- `DTO`: các lớp truyền dữ liệu giữa các tầng.
+- `UTILS`: tiện ích dùng chung, hiện có helper kết nối database và quản lý phiên đăng nhập.
 
-Hệ thống hỗ trợ 2 vai trò chính:
+Hệ thống có 2 nhóm người dùng chính:
 
-- `Thủ thư`: thao tác quản lý và vận hành thư viện
-- `Độc giả`: xem thông tin cá nhân và lịch sử mượn sách
-
-## Chức năng chính
-
-### Đối với thủ thư
-
-- Đăng nhập hệ thống
-- Tiếp nhận sách mới
-- Lập thẻ độc giả
-- Cho mượn sách
-- Nhận trả sách
-- Thu tiền phạt
-- Tra cứu sách
-- Xem báo cáo thống kê
-- Thay đổi quy định hệ thống
-
-### Đối với độc giả
-
-- Đăng nhập hệ thống
-- Xem thông tin cá nhân
-- Xem lịch sử mượn sách
-- Tra cứu sách
+- **Thủ thư**: quản lý dữ liệu và vận hành nghiệp vụ thư viện.
+- **Độc giả**: đăng nhập để xem thông tin cá nhân, lịch sử mượn và tra cứu sách.
 
 ## Công nghệ sử dụng
 
-- C# (.NET Framework 4.7.2)
+- C# .NET Framework 4.7.2
 - Windows Forms
 - SQL Server
 - ADO.NET (`System.Data.SqlClient`)
+- Visual Studio
+
+## Chức năng chính
+
+### Thủ thư
+
+- Đăng nhập hệ thống.
+- Tiếp nhận sách mới.
+- Xóa sách chưa phát sinh lịch sử mượn/trả.
+- Lập thẻ độc giả.
+- Xóa độc giả chưa phát sinh phiếu mượn hoặc phiếu thu tiền phạt.
+- Quản lý thủ thư.
+- Cho mượn sách.
+- Nhận trả sách.
+- Thu tiền phạt.
+- Tra cứu sách.
+- Xem báo cáo thống kê.
+- Thay đổi quy định hệ thống.
+- Thêm, sửa, xóa thể loại sách.
+
+### Độc giả
+
+- Đăng nhập hệ thống.
+- Xem thông tin cá nhân.
+- Xem lịch sử mượn sách.
+- Tra cứu sách trong thư viện.
+
+## Quy định nghiệp vụ
+
+Các quy định chính được lưu trong bảng `ThamSo`:
+
+- Thời hạn thẻ độc giả theo tháng.
+- Tuổi tối thiểu và tối đa khi lập thẻ độc giả.
+- Khoảng năm xuất bản hợp lệ khi tiếp nhận sách.
+- Số sách được mượn tối đa.
+- Số ngày được mượn tối đa.
+- Tiền phạt mỗi ngày trả trễ.
+
+Một số quy định được kiểm tra ở cả tầng ứng dụng và SQL Server:
+
+- Độc giả phải còn hạn thẻ mới được mượn sách.
+- Độc giả còn nợ tiền phạt không được mượn thêm sách.
+- Độc giả không được mượn quá số sách tối đa.
+- Sách trả trễ phát sinh tiền phạt.
+- Sách tiếp nhận phải nằm trong khoảng năm xuất bản hợp lệ.
+- Sách hoặc độc giả đã phát sinh lịch sử mượn/trả không bị xóa trực tiếp để bảo toàn dữ liệu lịch sử.
+
+## Quy định chung và thể loại
+
+Form **Thay đổi quy định** chia làm 2 phần:
+
+- 6 ô phía trên là quy định chung của hệ thống: thời hạn thẻ, tuổi tối thiểu, tuổi tối đa, khoảng năm xuất bản, số sách mượn tối đa và số ngày mượn tối đa.
+- Bảng phía dưới chỉ dùng để quản lý tên thể loại sách.
+
+Khi chọn một dòng thể loại, hệ thống chỉ đưa tên thể loại lên ô `Tên thể loại` để sửa hoặc xóa. Việc chọn thể loại không làm thay đổi 6 tham số quy định chung phía trên.
 
 ## Cấu trúc thư mục
 
 ```text
 quanlythuvien/
 |-- Database/
-|   `-- 01_QuanLyThuVien.sql
+|   |-- 01_QuanLyThuVien.sql
+|   `-- 02_Fix_Trigger_MuonSach.sql
 |-- SourceCode/
 |   `-- QuanLyThuVien/
 |       |-- QuanLyThuVien.slnx
 |       `-- QuanLyThuVien/
-|           |-- GUI/
 |           |-- BUS/
 |           |-- DAL/
 |           |-- DTO/
-|           `-- UTILS/
+|           |-- GUI/
+|           |-- UTILS/
+|           |-- App.config
+|           `-- QuanLyThuVien.csproj
+|-- build-check/
 |-- .gitignore
 `-- README.md
 ```
 
 ## Cơ sở dữ liệu
 
-Database mặc định là:
+Database mặc định:
 
 ```text
 QuanLyThuVien
 ```
 
-Chuỗi kết nối hiện tại nằm trong file:
+Script chính:
+
+```text
+Database/01_QuanLyThuVien.sql
+```
+
+Script này tạo database, bảng, khóa, ràng buộc, trigger và dữ liệu mẫu ban đầu.
+
+Chuỗi kết nối nằm trong:
 
 ```text
 SourceCode/QuanLyThuVien/QuanLyThuVien/App.config
@@ -85,72 +132,77 @@ Giá trị mặc định:
      providerName="System.Data.SqlClient" />
 ```
 
-Nếu máy bạn dùng SQL Server instance khác, hãy sửa lại `Data Source`.
-
-## Cách chạy dự án
-
-### 1. Tạo database
-
-Mở **SQL Server Management Studio** và chạy file:
+Nếu máy dùng SQL Server instance khác, sửa lại `Data Source`. Ví dụ:
 
 ```text
-Database/01_QuanLyThuVien.sql
+Data Source=.\SQLEXPRESS
 ```
 
-Script này sẽ:
+## Cách chạy project
 
-- Tạo database `QuanLyThuVien`
-- Tạo bảng, khóa, ràng buộc và trigger
-- Chèn dữ liệu mẫu ban đầu
-
-### 2. Mở project
-
-Bạn có thể mở một trong hai file sau bằng Visual Studio:
+1. Mở SQL Server Management Studio.
+2. Chạy file `Database/01_QuanLyThuVien.sql`.
+3. Mở project bằng Visual Studio:
 
 ```text
 SourceCode/QuanLyThuVien/QuanLyThuVien.slnx
 ```
 
-hoặc:
+Hoặc mở trực tiếp file:
 
 ```text
 SourceCode/QuanLyThuVien/QuanLyThuVien/QuanLyThuVien.csproj
 ```
 
-### 3. Chạy ứng dụng
+4. Kiểm tra chuỗi kết nối trong `App.config`.
+5. Build và chạy ứng dụng.
 
-- Build project
-- Chạy ứng dụng
-- Màn hình khởi động là `FormDangNhap`
+Màn hình đầu tiên là form đăng nhập.
 
 ## Tài khoản mẫu
 
-Dữ liệu mẫu trong script SQL có sẵn các tài khoản sau:
+### Thủ thư
+
+```text
+Tên đăng nhập: thuthu01
+Mật khẩu: admin123
+```
+
+```text
+Tên đăng nhập: thuthu02
+Mật khẩu: admin123
+```
 
 ### Độc giả
 
-- `docgia01` / `123456`
-- `docgia02` / `123456`
+```text
+Tên đăng nhập: docgia01
+Mật khẩu: 123456
+```
 
-### Thủ thư
+```text
+Tên đăng nhập: docgia02
+Mật khẩu: 123456
+```
 
-- `thuthu01` / `admin123`
+Các tài khoản độc giả demo khác:
 
-## Một số quy tắc nghiệp vụ
+```text
+docgia03 / 123456
+docgia04 / 123456
+docgia05 / 123456
+docgia06 / 123456
+```
 
-- Độc giả phải còn hạn thẻ mới được mượn sách
-- Độc giả đang còn nợ tiền phạt không được mượn thêm
-- Độc giả không được vượt quá số sách mượn tối đa
-- Sách trả trễ sẽ phát sinh tiền phạt
-- Một số ràng buộc nghiệp vụ được kiểm soát bằng trigger ở SQL Server
+## Ghi chú khi sử dụng
 
-## Ghi chú
+- Nếu đang mở file `.exe`, Visual Studio có thể không build đè được do file đang bị khóa. Hãy đóng ứng dụng rồi build lại.
+- Xóa sách chỉ áp dụng cho sách chưa phát sinh phiếu mượn/trả.
+- Xóa độc giả chỉ áp dụng cho độc giả chưa phát sinh phiếu mượn hoặc phiếu thu tiền phạt.
+- Dữ liệu đã phát sinh lịch sử được giữ lại để phục vụ tra cứu, báo cáo và bảo toàn liên kết dữ liệu.
+- Project phù hợp cho mục đích học tập, demo và đồ án môn học.
 
-- Project hiện phù hợp cho mục đích học tập, demo hoặc làm đồ án môn học
-- Nếu đang mở file `.exe`, việc build lại có thể bị khóa file đầu ra; chỉ cần đóng ứng dụng rồi build lại
-- Nếu bạn thay đổi schema database, nên kiểm tra lại các trigger và phần `DAL`
----
 ## Tác giả
 
-**Họ và Tên:** Thái Công Anh Quốc\
+**Họ và tên:** Thái Công Anh Quốc  
 **Gmail:** anhquoc212005@gmail.com
