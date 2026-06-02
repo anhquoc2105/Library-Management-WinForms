@@ -1,38 +1,45 @@
 using System.Data;
+using System.Data.SqlClient;
 using QuanLyThuVien.UTILS;
 
 namespace QuanLyThuVien.DAL
 {
     public class BaoCaoDAL
     {
-        public DataTable LayBaoCaoMuonTheoTheLoai()
+        public DataTable LayDanhSachThangBaoCao()
         {
             const string query = @"
-                WITH ThangBaoCao AS
+                SELECT DISTINCT
+                    YEAR(NgayMuon) AS Nam,
+                    MONTH(NgayMuon) AS Thang,
+                    RIGHT('0' + CAST(MONTH(NgayMuon) AS VARCHAR(2)), 2)
+                        + '/' + CAST(YEAR(NgayMuon) AS VARCHAR(4)) AS ThangNam
+                FROM PhieuMuon
+                ORDER BY Nam DESC, Thang DESC";
+
+            return DbHelper.ExecuteQuery(query);
+        }
+
+        public DataTable LayBaoCaoMuonTheoTheLoai(int nam, int thang)
+        {
+            const string query = @"
+                WITH BaoCaoMuonTheoTheLoai AS
                 (
                     SELECT
-                        TOP 1
-                        YEAR(pm.NgayMuon) AS Nam,
-                        MONTH(pm.NgayMuon) AS Thang
-                    FROM PhieuMuon pm
-                    ORDER BY YEAR(pm.NgayMuon) DESC, MONTH(pm.NgayMuon) DESC
-                ),
-                BaoCaoMuonTheoTheLoai AS
-                (
-                    SELECT
-                        tb.Thang,
+                        @Thang AS Thang,
+                        @Nam AS Nam,
                         tl.TenTheLoai AS TenTheLoai,
                         COUNT(ct.MaCTPM) AS SoLuotMuon
-                    FROM ThangBaoCao tb
-                    INNER JOIN PhieuMuon pm
-                        ON YEAR(pm.NgayMuon) = tb.Nam
-                       AND MONTH(pm.NgayMuon) = tb.Thang
+                    FROM PhieuMuon pm
                     INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                     INNER JOIN Sach s ON ct.MaSach = s.MaSach
                     LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
-                    GROUP BY tb.Thang, tl.TenTheLoai
+                    WHERE YEAR(pm.NgayMuon) = @Nam
+                      AND MONTH(pm.NgayMuon) = @Thang
+                    GROUP BY tl.TenTheLoai
                 )
                 SELECT
+                    Nam,
                     Thang,
                     TenTheLoai,
                     SoLuotMuon,
@@ -44,24 +51,33 @@ namespace QuanLyThuVien.DAL
                 FROM BaoCaoMuonTheoTheLoai
                 ORDER BY TenTheLoai";
 
-            return DbHelper.ExecuteQuery(query);
+            return DbHelper.ExecuteQuery(
+                query,
+                new SqlParameter("@Nam", nam),
+                new SqlParameter("@Thang", thang));
         }
 
-        public DataTable LayBaoCaoTraTre()
+        public DataTable LayBaoCaoTraTre(int nam, int thang)
         {
             const string query = @"
                 SELECT
                     s.TenSach,
                     pm.NgayMuon,
-                    DATEDIFF(DAY, pm.NgayPhaiTra, pm.NgayTra) AS SoNgayTraTre
+                    ct.NgayTra,
+                    DATEDIFF(DAY, pm.NgayPhaiTra, ct.NgayTra) AS SoNgayTraTre
                 FROM PhieuMuon pm
                 INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                 INNER JOIN Sach s ON ct.MaSach = s.MaSach
-                WHERE pm.NgayTra IS NOT NULL
-                  AND pm.NgayTra > pm.NgayPhaiTra
-                ORDER BY pm.NgayTra DESC";
+                WHERE ct.NgayTra IS NOT NULL
+                  AND ct.NgayTra > pm.NgayPhaiTra
+                  AND YEAR(pm.NgayMuon) = @Nam
+                  AND MONTH(pm.NgayMuon) = @Thang
+                ORDER BY ct.NgayTra DESC";
 
-            return DbHelper.ExecuteQuery(query);
+            return DbHelper.ExecuteQuery(
+                query,
+                new SqlParameter("@Nam", nam),
+                new SqlParameter("@Thang", thang));
         }
     }
 }

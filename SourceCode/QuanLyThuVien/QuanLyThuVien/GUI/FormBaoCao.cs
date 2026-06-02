@@ -12,6 +12,8 @@ namespace QuanLyThuVien.GUI
         private readonly BaoCaoBUS baoCaoBUS = new BaoCaoBUS();
         private Label lblTieuDe;
         private Label lblMoTa;
+        private Label lblThangBaoCao;
+        private ComboBox cboThangBaoCao;
         private Button btnMuonTheoTheLoai;
         private Button btnTraTre;
         private Button btnDong;
@@ -23,10 +25,13 @@ namespace QuanLyThuVien.GUI
         private Label lblThoiGian;
         private Label lblTongKet;
         private DataGridView dgvBaoCao;
+        private string loaiBaoCaoDangXem;
+        private bool dangTaiThangBaoCao;
 
         public FormBaoCao()
         {
             TaoGiaoDien();
+            Load += FormBaoCao_Load;
         }
 
         private void TaoGiaoDien()
@@ -53,8 +58,19 @@ namespace QuanLyThuVien.GUI
             lblMoTa.AutoSize = true;
             lblMoTa.Location = new Point(38, 64);
 
-            btnMuonTheoTheLoai = TaoButton("Mượn theo thể loại", 40, 112, 180, Color.FromArgb(28, 77, 125), Color.White);
-            btnTraTre = TaoButton("Sách trả trễ", 232, 112, 160, Color.FromArgb(28, 77, 125), Color.White);
+            lblThangBaoCao = new Label();
+            lblThangBaoCao.Text = "Tháng báo cáo";
+            lblThangBaoCao.AutoSize = true;
+            lblThangBaoCao.Location = new Point(40, 112);
+
+            cboThangBaoCao = new ComboBox();
+            cboThangBaoCao.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboThangBaoCao.Location = new Point(154, 108);
+            cboThangBaoCao.Size = new Size(130, 26);
+            cboThangBaoCao.SelectedIndexChanged += cboThangBaoCao_SelectedIndexChanged;
+
+            btnMuonTheoTheLoai = TaoButton("Mượn theo thể loại", 300, 104, 180, Color.FromArgb(28, 77, 125), Color.White);
+            btnTraTre = TaoButton("Sách trả trễ", 492, 104, 160, Color.FromArgb(28, 77, 125), Color.White);
             btnDong = TaoButton("Đóng", 900, 112, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
             btnMuonTheoTheLoai.Click += (sender, e) => HienThiBaoCaoMuonTheoTheLoai();
@@ -66,6 +82,8 @@ namespace QuanLyThuVien.GUI
 
             Controls.Add(lblTieuDe);
             Controls.Add(lblMoTa);
+            Controls.Add(lblThangBaoCao);
+            Controls.Add(cboThangBaoCao);
             Controls.Add(btnMuonTheoTheLoai);
             Controls.Add(btnTraTre);
             Controls.Add(btnDong);
@@ -185,12 +203,69 @@ namespace QuanLyThuVien.GUI
             return button;
         }
 
+        private void FormBaoCao_Load(object sender, EventArgs e)
+        {
+            TaiDanhSachThangBaoCao();
+        }
+
+        private void TaiDanhSachThangBaoCao()
+        {
+            dangTaiThangBaoCao = true;
+            DataTable danhSachThang = baoCaoBUS.LayDanhSachThangBaoCao();
+            cboThangBaoCao.DataSource = danhSachThang;
+            cboThangBaoCao.DisplayMember = "ThangNam";
+            cboThangBaoCao.ValueMember = "Thang";
+            cboThangBaoCao.Enabled = danhSachThang.Rows.Count > 0;
+            dangTaiThangBaoCao = false;
+        }
+
+        private bool LayThangNamDangChon(out int nam, out int thang)
+        {
+            nam = 0;
+            thang = 0;
+
+            DataRowView selected = cboThangBaoCao.SelectedItem as DataRowView;
+            if (selected == null)
+            {
+                MessageBox.Show("Chưa có dữ liệu tháng báo cáo.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            nam = Convert.ToInt32(selected["Nam"]);
+            thang = Convert.ToInt32(selected["Thang"]);
+            return true;
+        }
+
+        private void cboThangBaoCao_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (dangTaiThangBaoCao || string.IsNullOrEmpty(loaiBaoCaoDangXem))
+            {
+                return;
+            }
+
+            if (loaiBaoCaoDangXem == "MuonTheoTheLoai")
+            {
+                HienThiBaoCaoMuonTheoTheLoai();
+            }
+            else if (loaiBaoCaoDangXem == "TraTre")
+            {
+                HienThiBaoCaoTraTre();
+            }
+        }
+
         private void HienThiBaoCaoMuonTheoTheLoai()
         {
-            DataTable sourceTable = baoCaoBUS.LayBaoCaoMuonTheoTheLoai();
+            int nam;
+            int thang;
+            if (!LayThangNamDangChon(out nam, out thang))
+            {
+                return;
+            }
+
+            loaiBaoCaoDangXem = "MuonTheoTheLoai";
+            DataTable sourceTable = baoCaoBUS.LayBaoCaoMuonTheoTheLoai(nam, thang);
             dgvBaoCao.DataSource = TaoBangBaoCaoMuonTheoTheLoai(sourceTable);
 
-            string thangHienThi = sourceTable.Rows.Count == 0 ? "--" : sourceTable.Rows[0]["Thang"].ToString();
             int tongSoLuotMuon = sourceTable.AsEnumerable().Sum(row => row.Field<int>("SoLuotMuon"));
 
             pnlEmptyState.Visible = false;
@@ -198,7 +273,7 @@ namespace QuanLyThuVien.GUI
 
             lblTenBaoCao.Text = "Báo cáo thống kê tình hình mượn sách theo thể loại";
             lblThoiGian.Visible = true;
-            lblThoiGian.Text = "Tháng: " + thangHienThi;
+            lblThoiGian.Text = "Tháng: " + thang + "/" + nam;
             lblTongKet.Visible = true;
             lblTongKet.Text = "Tổng số lượt mượn: " + tongSoLuotMuon;
 
@@ -207,19 +282,23 @@ namespace QuanLyThuVien.GUI
 
         private void HienThiBaoCaoTraTre()
         {
-            DataTable sourceTable = baoCaoBUS.LayBaoCaoTraTre();
-            dgvBaoCao.DataSource = TaoBangBaoCaoTraTre(sourceTable);
+            int nam;
+            int thang;
+            if (!LayThangNamDangChon(out nam, out thang))
+            {
+                return;
+            }
 
-            string ngayHienThi = sourceTable.Rows.Count == 0
-                ? "--"
-                : Convert.ToDateTime(sourceTable.Rows[0]["NgayMuon"]).ToString("dd/MM/yyyy");
+            loaiBaoCaoDangXem = "TraTre";
+            DataTable sourceTable = baoCaoBUS.LayBaoCaoTraTre(nam, thang);
+            dgvBaoCao.DataSource = TaoBangBaoCaoTraTre(sourceTable);
 
             pnlEmptyState.Visible = false;
             pnlReport.Visible = true;
 
             lblTenBaoCao.Text = "Báo cáo thống kê sách trả trễ";
             lblThoiGian.Visible = true;
-            lblThoiGian.Text = "Ngày: " + ngayHienThi;
+            lblThoiGian.Text = "Tháng: " + thang + "/" + nam;
             lblTongKet.Visible = false;
 
             DinhDangBaoCaoTraTre();

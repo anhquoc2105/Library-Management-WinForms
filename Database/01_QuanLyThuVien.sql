@@ -207,13 +207,17 @@ CREATE TABLE dbo.ChiTietPM
     MaPhieu INT NOT NULL,
     MaSach INT NOT NULL,
     NgayThang DATE NOT NULL DEFAULT GETDATE(),
+    NgayTra DATE NULL,
+    TienPhatKyNay DECIMAL(18,2) NOT NULL DEFAULT 0,
     SoLanMuon INT NOT NULL DEFAULT 1,
     CONSTRAINT FK_ChiTietPM_PhieuMuon
         FOREIGN KEY (MaPhieu) REFERENCES dbo.PhieuMuon(MaPhieu),
     CONSTRAINT FK_ChiTietPM_Sach
         FOREIGN KEY (MaSach) REFERENCES dbo.Sach(MaSach),
     CONSTRAINT UQ_ChiTietPM_MaPhieu_MaSach UNIQUE (MaPhieu, MaSach),
-    CONSTRAINT CK_ChiTietPM_SoLanMuon CHECK (SoLanMuon > 0)
+    CONSTRAINT CK_ChiTietPM_SoLanMuon CHECK (SoLanMuon > 0),
+    CONSTRAINT CK_ChiTietPM_TienPhatKyNay CHECK (TienPhatKyNay >= 0),
+    CONSTRAINT CK_ChiTietPM_NgayTra CHECK (NgayTra IS NULL OR NgayTra >= NgayThang)
 );
 GO
 
@@ -280,8 +284,9 @@ BEGIN
         (
             SELECT 1
             FROM dbo.PhieuMuon pm2
+            INNER JOIN dbo.ChiTietPM ct2 ON pm2.MaPhieu = ct2.MaPhieu
             WHERE pm2.MaDG = pm.MaDG
-              AND pm2.NgayTra IS NULL
+              AND ct2.NgayTra IS NULL
               AND pm2.NgayPhaiTra < pm.NgayMuon
               AND pm2.MaPhieu <> pm.MaPhieu
         )
@@ -304,7 +309,7 @@ BEGIN
             FROM dbo.ChiTietPM ct
             INNER JOIN dbo.PhieuMuon pm2 ON ct.MaPhieu = pm2.MaPhieu
             WHERE pm2.MaDG = pm.MaDG
-              AND pm2.NgayTra IS NULL
+              AND ct.NgayTra IS NULL
         ) > @SoSachMuonToiDa
     )
     BEGIN
@@ -325,6 +330,7 @@ BEGIN
             GROUP BY MaSach
         ) d ON i.MaSach = d.MaSach
         WHERE s.SoLuongTon + ISNULL(d.SoLuongXoa, 0) - 1 < 0
+          AND i.NgayTra IS NULL
     )
     BEGIN
         RAISERROR(N'Sách không còn trong kho.', 16, 1);
@@ -339,16 +345,14 @@ BEGIN
         (
             SELECT i.MaSach, -COUNT(*) AS Delta
             FROM inserted i
-            INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
-            WHERE pm.NgayTra IS NULL
+            WHERE i.NgayTra IS NULL
             GROUP BY i.MaSach
 
             UNION ALL
 
             SELECT d.MaSach, COUNT(*) AS Delta
             FROM deleted d
-            INNER JOIN dbo.PhieuMuon pm ON d.MaPhieu = pm.MaPhieu
-            WHERE pm.NgayTra IS NULL
+            WHERE d.NgayTra IS NULL
             GROUP BY d.MaSach
         ) x
         GROUP BY MaSach
@@ -385,6 +389,7 @@ BEGIN
         SELECT COUNT(*) AS SoLuong
         FROM dbo.ChiTietPM c
         WHERE c.MaPhieu = pm.MaPhieu
+          AND c.NgayTra IS NULL
     ) ct;
 END
 GO
@@ -504,35 +509,25 @@ BEGIN
     FROM dbo.PhieuMuon pm
     INNER JOIN ReturnedPhieu rp ON pm.MaPhieu = rp.MaPhieu;
 
-    ;WITH ReturnedBooks AS
+    ;WITH ReturnedPhieu AS
     (
-        SELECT ct.MaSach, COUNT(*) AS SoLuongTra
-        FROM dbo.ChiTietPM ct
-        INNER JOIN inserted i ON ct.MaPhieu = i.MaPhieu
-        INNER JOIN deleted d ON i.MaPhieu = d.MaPhieu
-        WHERE d.NgayTra IS NULL
-          AND i.NgayTra IS NOT NULL
-        GROUP BY ct.MaSach
-    )
-    UPDATE s
-    SET SoLuongTon = SoLuongTon + rb.SoLuongTra
-    FROM dbo.Sach s
-    INNER JOIN ReturnedBooks rb ON s.MaSach = rb.MaSach;
-
-    ;WITH ReturnedBooks AS
-    (
-        SELECT ct.MaSach
-        FROM dbo.ChiTietPM ct
-        INNER JOIN inserted i ON ct.MaPhieu = i.MaPhieu
+        SELECT i.MaPhieu, i.MaDG, i.NgayTra, i.NgayPhaiTra
+        FROM inserted i
         INNER JOIN deleted d ON i.MaPhieu = d.MaPhieu
         WHERE d.NgayTra IS NULL
           AND i.NgayTra IS NOT NULL
     )
-    UPDATE s
-    SET TinhTrang = CASE WHEN s.SoLuongTon > 0 THEN N'Con' ELSE N'Dang muon' END
-    FROM dbo.Sach s
-    INNER JOIN ReturnedBooks rb ON s.MaSach = rb.MaSach
-    WHERE s.TinhTrang IN (N'Con', N'Dang muon');
+    UPDATE ct
+    SET NgayTra = rp.NgayTra,
+        TienPhatKyNay =
+            CASE
+                WHEN rp.NgayTra > rp.NgayPhaiTra
+                THEN DATEDIFF(DAY, rp.NgayPhaiTra, rp.NgayTra) * @TienPhat
+                ELSE 0
+            END
+    FROM dbo.ChiTietPM ct
+    INNER JOIN ReturnedPhieu rp ON ct.MaPhieu = rp.MaPhieu
+    WHERE ct.NgayTra IS NULL;
 
     ;WITH AffectedDocGia AS
     (
@@ -673,7 +668,10 @@ VALUES
     ('docgia05', '123456'),
     ('docgia06', '123456'),
     ('thuthu01', 'admin123'),
-    ('thuthu02', 'admin123');
+    ('thuthu02', 'admin123'),
+    ('docgia07', '123456'),
+    ('docgia08', '123456'),
+    ('docgia09', '123456');
 GO
 
 INSERT INTO dbo.DocGia
@@ -691,10 +689,13 @@ INSERT INTO dbo.DocGia
 VALUES
     (N'Nguyễn Văn A', N'X', '2004-03-15', N'98 Yên Đỗ', 'a@gmail.com', '2026-05-01', NULL, 0, 1),
     (N'Trần Thị B', N'Y', '1990-09-20', N'12 Lê Lợi', 'b@gmail.com', '2026-05-02', NULL, 2000, 2),
-    (N'Lê Minh Quốc', N'X', '2000-05-16', N'Dĩ An, Bình Dương', 'quoc.demo@gmail.com', '2026-05-16', NULL, 0, 3),
-    (N'Phạm Hoàng An', N'X', '1998-11-02', N'Thủ Đức, TP.HCM', 'an.demo@gmail.com', '2026-05-18', NULL, 0, 4),
-    (N'Võ Ngọc Nhi', N'Y', '2002-08-21', N'Biên Hòa, Đồng Nai', 'nhi.demo@gmail.com', '2026-05-20', NULL, 0, 5),
-    (N'Đặng Thành Tín', N'Y', '1995-12-09', N'Quận 1, TP.HCM', 'tin.demo@gmail.com', '2026-05-22', NULL, 1000, 6);
+    (N'Lê Minh Quốc', N'X', '2000-05-16', N'Dĩ An, Bình Dương', 'quoc@gmail.com', '2026-05-16', NULL, 0, 3),
+    (N'Phạm Hoàng An', N'X', '1998-11-02', N'Thủ Đức, TP.HCM', 'an@gmail.com', '2026-05-18', NULL, 0, 4),
+    (N'Võ Ngọc Nhi', N'Y', '2002-08-21', N'Biên Hòa, Đồng Nai', 'nhi@gmail.com', '2026-05-20', NULL, 0, 5),
+    (N'Đặng Thành Tín', N'Y', '1995-12-09', N'Quận 1, TP.HCM', 'tin@gmail.com', '2026-05-22', NULL, 1000, 6),
+    (N'Nguyễn Thị Mai', N'X', '2001-01-10', N'TP.HCM', 'mai@gmail.com', '2026-06-01', NULL, 0, 9),
+    (N'Trần Quốc Huy', N'Y', '1999-02-20', N'Đồng Nai', 'huy@gmail.com', '2026-06-01', NULL, 0, 10),
+    (N'Hoàng Gia Bảo', N'X', '2003-03-30', N'Bình Dương', 'bao@gmail.com', '2026-06-01', NULL, 0, 11);
 GO
 
 INSERT INTO dbo.ThuThu
@@ -882,6 +883,45 @@ VALUES
         99000,
         2,
         N'Con'
+    ),
+    (
+        N'Tin Học Văn Phòng',
+        N'A',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'A'),
+        N'Tác giả 013',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 013'),
+        2024,
+        N'NXB Tổng Hợp',
+        '2026-06-01',
+        45000,
+        1,
+        N'Con'
+    ),
+    (
+        N'Lập Trình Web Cơ Bản',
+        N'B',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'B'),
+        N'Tác giả 014',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 014'),
+        2023,
+        N'NXB Công Nghệ',
+        '2026-06-01',
+        52000,
+        1,
+        N'Con'
+    ),
+    (
+        N'Quản Trị Cơ Sở Dữ Liệu',
+        N'C',
+        (SELECT MaTheLoai FROM dbo.TheLoai WHERE TenTheLoai = N'C'),
+        N'Tác giả 015',
+        (SELECT MaTacGia FROM dbo.TacGia WHERE TenTacGia = N'Tác giả 015'),
+        2022,
+        N'NXB Giáo Dục',
+        '2026-06-01',
+        60000,
+        1,
+        N'Con'
     );
 GO
 
@@ -892,23 +932,31 @@ VALUES
     (3, '2026-05-18', NULL, 0),
     (4, '2026-05-20', '2026-05-23', 0),
     (5, '2026-05-24', NULL, 0),
-    (6, '2026-05-25', '2026-05-30', 1000);
+    (6, '2026-05-25', '2026-05-30', 1000),
+    (2, '2026-06-01', NULL, 0),
+    (4, '2026-06-01', '2026-06-04', 0),
+    (6, '2026-06-02', '2026-06-08', 2000);
 GO
 
-INSERT INTO dbo.ChiTietPM (MaPhieu, MaSach, NgayThang, SoLanMuon)
+INSERT INTO dbo.ChiTietPM (MaPhieu, MaSach, NgayThang, NgayTra, TienPhatKyNay, SoLanMuon)
 VALUES
-    (1, 1, '2026-05-10', 1),
-    (1, 5, '2026-05-10', 1),
-    (2, 2, '2026-05-11', 1),
-    (3, 6, '2026-05-18', 1),
-    (3, 7, '2026-05-18', 1),
-    (4, 3, '2026-05-20', 1),
-    (5, 8, '2026-05-24', 1),
-    (6, 10, '2026-05-25', 1);
+    (1, 1, '2026-05-10', NULL, 0, 1),
+    (1, 5, '2026-05-10', NULL, 0, 1),
+    (2, 2, '2026-05-11', '2026-05-17', 2000, 1),
+    (3, 6, '2026-05-18', NULL, 0, 1),
+    (3, 7, '2026-05-18', NULL, 0, 1),
+    (4, 3, '2026-05-20', '2026-05-23', 0, 1),
+    (5, 8, '2026-05-24', NULL, 0, 1),
+    (6, 10, '2026-05-25', '2026-05-30', 1000, 1),
+    (7, 4, '2026-06-01', NULL, 0, 1),
+    (7, 9, '2026-06-01', NULL, 0, 1),
+    (8, 11, '2026-06-01', '2026-06-04', 0, 1),
+    (9, 12, '2026-06-02', '2026-06-08', 2000, 1);
 GO
 
 INSERT INTO dbo.PhieuThuTienPhat (MaDG, NgayThu, TongNoLucThu, SoTienThu, ConLai)
 VALUES
     (2, '2026-05-18', 2000, 0, 2000),
-    (6, '2026-05-31', 1000, 0, 1000);
+    (6, '2026-05-31', 1000, 0, 1000),
+    (6, '2026-06-09', 2000, 0, 2000);
 GO

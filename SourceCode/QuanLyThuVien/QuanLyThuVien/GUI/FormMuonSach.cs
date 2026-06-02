@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
+using System.Text;
 using System.Windows.Forms;
 using QuanLyThuVien.BUS;
 
@@ -15,11 +17,15 @@ namespace QuanLyThuVien.GUI
         private Label lblTieuDe;
         private Label lblMoTa;
         private Label lblDocGia;
+        private Label lblTimSach;
         private ComboBox cboDocGia;
+        private TextBox txtTimSach;
         private DataGridView dgvSachCon;
         private Button btnLapPhieu;
         private Button btnTaiLai;
         private Button btnDong;
+        private DataTable danhSachSachConGoc;
+        private readonly HashSet<int> maSachDangChon = new HashSet<int>();
 
         public FormMuonSach()
         {
@@ -31,7 +37,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Cho mượn sách";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1340, 740);
+            ClientSize = new Size(1380, 800);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -61,6 +67,16 @@ namespace QuanLyThuVien.GUI
             cboDocGia.Location = new Point(40, 136);
             cboDocGia.Size = new Size(400, 30);
 
+            lblTimSach = new Label();
+            lblTimSach.Text = "T\u00ecm s\u00e1ch";
+            lblTimSach.AutoSize = true;
+            lblTimSach.Location = new Point(470, 110);
+
+            txtTimSach = new TextBox();
+            txtTimSach.Location = new Point(470, 136);
+            txtTimSach.Size = new Size(360, 30);
+            txtTimSach.TextChanged += txtTimSach_TextChanged;
+
             btnLapPhieu = TaoButton("Lập phiếu mượn", 880, 128, 180, Color.FromArgb(28, 77, 125), Color.White);
             btnTaiLai = TaoButton("Tải lại", 1080, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
             btnDong = TaoButton("Đóng", 1214, 128, 120, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
@@ -70,8 +86,8 @@ namespace QuanLyThuVien.GUI
             btnDong.Click += (sender, e) => Close();
 
             dgvSachCon = new DataGridView();
-            dgvSachCon.Location = new Point(24, 200);
-            dgvSachCon.Size = new Size(1292, 500);
+            dgvSachCon.Location = new Point(24, 210);
+            dgvSachCon.Size = new Size(1332, 548);
             dgvSachCon.AllowUserToAddRows = false;
             dgvSachCon.AllowUserToDeleteRows = false;
             dgvSachCon.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -96,6 +112,8 @@ namespace QuanLyThuVien.GUI
             Controls.Add(lblMoTa);
             Controls.Add(lblDocGia);
             Controls.Add(cboDocGia);
+            Controls.Add(lblTimSach);
+            Controls.Add(txtTimSach);
             Controls.Add(btnLapPhieu);
             Controls.Add(btnTaiLai);
             Controls.Add(btnDong);
@@ -133,20 +151,136 @@ namespace QuanLyThuVien.GUI
             cboDocGia.DisplayMember = "TenDG";
             cboDocGia.ValueMember = "MaDG";
 
-            DataTable danhSachSachCon = sachBUS.LayDanhSachSachCon();
-            if (!danhSachSachCon.Columns.Contains("MaSachHienThi"))
+            maSachDangChon.Clear();
+            danhSachSachConGoc = sachBUS.LayDanhSachSachCon();
+            if (!danhSachSachConGoc.Columns.Contains("MaSachHienThi"))
             {
-                danhSachSachCon.Columns.Add("MaSachHienThi", typeof(string));
+                danhSachSachConGoc.Columns.Add("MaSachHienThi", typeof(string));
             }
 
-            foreach (DataRow row in danhSachSachCon.Rows)
+            foreach (DataRow row in danhSachSachConGoc.Rows)
             {
                 row["MaSachHienThi"] = Convert.ToInt32(row["MaSach"]).ToString("D5");
             }
 
-            danhSachSachCon.Columns["MaSachHienThi"].SetOrdinal(0);
-            dgvSachCon.DataSource = danhSachSachCon;
+            danhSachSachConGoc.Columns["MaSachHienThi"].SetOrdinal(0);
+            ApDungLocSach();
+        }
+
+        private void txtTimSach_TextChanged(object sender, EventArgs e)
+        {
+            ApDungLocSach();
+        }
+
+        private void ApDungLocSach()
+        {
+            CapNhatSachDangChonTuGrid();
+
+            if (danhSachSachConGoc == null)
+            {
+                return;
+            }
+
+            string tuKhoa = ChuanHoaTimKiem(txtTimSach == null ? string.Empty : txtTimSach.Text);
+            DataTable ketQua = danhSachSachConGoc.Clone();
+
+            foreach (DataRow row in danhSachSachConGoc.Rows)
+            {
+                if (string.IsNullOrWhiteSpace(tuKhoa)
+                    || ChuaTuKhoa(row, "MaSachHienThi", tuKhoa)
+                    || ChuaTuKhoa(row, "TenSach", tuKhoa)
+                    || ChuaTuKhoa(row, "TenTheLoai", tuKhoa)
+                    || ChuaTuKhoa(row, "TenTG", tuKhoa))
+                {
+                    ketQua.ImportRow(row);
+                }
+            }
+
+            dgvSachCon.DataSource = ketQua;
             DinhDangCot();
+            KhoiPhucSachDangChon();
+        }
+
+        private bool ChuaTuKhoa(DataRow row, string tenCot, string tuKhoa)
+        {
+            if (!row.Table.Columns.Contains(tenCot))
+            {
+                return false;
+            }
+
+            return ChuanHoaTimKiem(Convert.ToString(row[tenCot])).Contains(tuKhoa);
+        }
+
+        private string ChuanHoaTimKiem(string giaTri)
+        {
+            if (string.IsNullOrWhiteSpace(giaTri))
+            {
+                return string.Empty;
+            }
+
+            string normalized = giaTri.Normalize(NormalizationForm.FormD);
+            StringBuilder builder = new StringBuilder();
+
+            foreach (char c in normalized)
+            {
+                UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (category != UnicodeCategory.NonSpacingMark)
+                {
+                    builder.Append(c);
+                }
+            }
+
+            return builder.ToString()
+                .Normalize(NormalizationForm.FormC)
+                .Replace('đ', 'd')
+                .Replace('Đ', 'D')
+                .ToLowerInvariant();
+        }
+
+        private void CapNhatSachDangChonTuGrid()
+        {
+            if (dgvSachCon == null || dgvSachCon.Columns["Chon"] == null || dgvSachCon.Columns["MaSach"] == null)
+            {
+                return;
+            }
+
+            foreach (DataGridViewRow row in dgvSachCon.Rows)
+            {
+                if (row.IsNewRow)
+                {
+                    continue;
+                }
+
+                int maSach = Convert.ToInt32(row.Cells["MaSach"].Value);
+                object cellValue = row.Cells["Chon"].Value;
+                bool daChon = cellValue != null && Convert.ToBoolean(cellValue);
+
+                if (daChon)
+                {
+                    maSachDangChon.Add(maSach);
+                }
+                else
+                {
+                    maSachDangChon.Remove(maSach);
+                }
+            }
+        }
+
+        private void KhoiPhucSachDangChon()
+        {
+            if (dgvSachCon.Columns["Chon"] == null || dgvSachCon.Columns["MaSach"] == null)
+            {
+                return;
+            }
+
+            foreach (DataGridViewRow row in dgvSachCon.Rows)
+            {
+                if (!row.IsNewRow)
+                {
+                    int maSach = Convert.ToInt32(row.Cells["MaSach"].Value);
+                    row.Cells["Chon"].Value = maSachDangChon.Contains(maSach);
+                }
+            }
         }
 
         private void dgvSachCon_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -172,20 +306,8 @@ namespace QuanLyThuVien.GUI
             }
 
             // Thu thập danh sách sách được chọn qua checkbox
-            List<int> danhSachMaSach = new List<int>();
-            foreach (DataGridViewRow row in dgvSachCon.Rows)
-            {
-                if (row.IsNewRow)
-                {
-                    continue;
-                }
-
-                object cellValue = row.Cells["Chon"].Value;
-                if (cellValue != null && Convert.ToBoolean(cellValue))
-                {
-                    danhSachMaSach.Add(Convert.ToInt32(row.Cells["MaSach"].Value));
-                }
-            }
+            CapNhatSachDangChonTuGrid();
+            List<int> danhSachMaSach = new List<int>(maSachDangChon);
 
             if (danhSachMaSach.Count == 0)
             {

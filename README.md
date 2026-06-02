@@ -36,7 +36,7 @@ Hệ thống có 2 nhóm người dùng chính:
 - Xóa độc giả chưa phát sinh phiếu mượn hoặc phiếu thu tiền phạt.
 - Quản lý thủ thư.
 - Cho mượn sách.
-- Nhận trả sách.
+- Nhận trả sách, hỗ trợ trả từng cuốn trong cùng một phiếu mượn.
 - Thu tiền phạt.
 - Tra cứu sách.
 - Xem báo cáo thống kê.
@@ -192,6 +192,9 @@ docgia03 / 123456
 docgia04 / 123456
 docgia05 / 123456
 docgia06 / 123456
+docgia07 / 123456
+docgia08 / 123456
+docgia09 / 123456
 ```
 
 ## Ghi chú khi sử dụng

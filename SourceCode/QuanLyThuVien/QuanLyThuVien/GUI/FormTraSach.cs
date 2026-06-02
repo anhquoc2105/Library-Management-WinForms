@@ -22,7 +22,6 @@ namespace QuanLyThuVien.GUI
         private TextBox txtTienPhatKyNay;
         private TextBox txtTongNo;
         private DataGridView dgvSachDangMuon;
-        private bool dangDongBoLuaChon;
         private Button btnTraSach;
         private Button btnTaiLai;
         private Button btnDong;
@@ -241,7 +240,6 @@ namespace QuanLyThuVien.GUI
         {
             if (e.RowIndex >= 0 && dgvSachDangMuon.Columns[e.ColumnIndex].Name == "ChonTra")
             {
-                DongBoLuaChonTheoPhieu(e.RowIndex);
                 CapNhatThongTinPhieu();
             }
         }
@@ -345,35 +343,6 @@ namespace QuanLyThuVien.GUI
             dgvSachDangMuon.DataSource = table;
             DinhDangBangSachDangMuon();
             CapNhatThongTinPhieu();
-        }
-
-        private void DongBoLuaChonTheoPhieu(int rowIndex)
-        {
-            if (dangDongBoLuaChon || rowIndex < 0 || rowIndex >= dgvSachDangMuon.Rows.Count)
-            {
-                return;
-            }
-
-            DataGridViewRow rowGoc = dgvSachDangMuon.Rows[rowIndex];
-            int maPhieu = Convert.ToInt32(rowGoc.Cells["MaPhieu"].Value);
-            bool daChon = Convert.ToBoolean(rowGoc.Cells["ChonTra"].Value);
-
-            dangDongBoLuaChon = true;
-            try
-            {
-                foreach (DataGridViewRow row in dgvSachDangMuon.Rows)
-                {
-                    if (Convert.ToInt32(row.Cells["MaPhieu"].Value) == maPhieu &&
-                        Convert.ToBoolean(row.Cells["ChonTra"].Value) != daChon)
-                    {
-                        row.Cells["ChonTra"].Value = daChon;
-                    }
-                }
-            }
-            finally
-            {
-                dangDongBoLuaChon = false;
-            }
         }
 
         private DataTable TaoBangHienThiTheoDocGia()
@@ -487,8 +456,7 @@ namespace QuanLyThuVien.GUI
             decimal tongTienPhatDuKien = dgvSachDangMuon.Rows
                 .Cast<DataGridViewRow>()
                 .Where(row => Convert.ToBoolean(row.Cells["ChonTra"].Value))
-                .GroupBy(row => Convert.ToInt32(row.Cells["MaPhieu"].Value))
-                .Sum(group => Convert.ToDecimal(group.First().Cells["TienPhatDuKienGoc"].Value));
+                .Sum(row => Convert.ToDecimal(row.Cells["TienPhatDuKienGoc"].Value));
 
             txtTienPhatKyNay.Text = tongTienPhatDuKien.ToString("N0");
             txtTongNo.Text = (tongNoHienTai + tongTienPhatDuKien).ToString("N0");

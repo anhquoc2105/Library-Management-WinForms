@@ -159,16 +159,24 @@ namespace QuanLyThuVien.GUI
             dgvLichSuMuon.Columns["NgayTra"].HeaderText = "Ngày trả";
             dgvLichSuMuon.Columns["TienPhatKyNay"].HeaderText = "Tiền phạt kỳ này";
             dgvLichSuMuon.Columns["TrangThaiMuon"].HeaderText = "Trạng thái mượn";
+            if (dgvLichSuMuon.Columns["SoLanMuon"] != null)
+            {
+                dgvLichSuMuon.Columns["SoLanMuon"].HeaderText = "Số lần";
+            }
 
             dgvLichSuMuon.Columns["TienPhatKyNay"].DefaultCellStyle.Format = "N0";
 
-            dgvLichSuMuon.Columns["MaPhieu"].FillWeight = 75;
-            dgvLichSuMuon.Columns["TenSach"].FillWeight = 130;
+            dgvLichSuMuon.Columns["MaPhieu"].FillWeight = 70;
+            dgvLichSuMuon.Columns["TenSach"].FillWeight = 125;
             dgvLichSuMuon.Columns["NgayMuon"].FillWeight = 95;
             dgvLichSuMuon.Columns["NgayPhaiTra"].FillWeight = 105;
             dgvLichSuMuon.Columns["NgayTra"].FillWeight = 95;
             dgvLichSuMuon.Columns["TienPhatKyNay"].FillWeight = 95;
             dgvLichSuMuon.Columns["TrangThaiMuon"].FillWeight = 95;
+            if (dgvLichSuMuon.Columns["SoLanMuon"] != null)
+            {
+                dgvLichSuMuon.Columns["SoLanMuon"].FillWeight = 60;
+            }
 
             dgvLichSuMuon.ClearSelection();
         }

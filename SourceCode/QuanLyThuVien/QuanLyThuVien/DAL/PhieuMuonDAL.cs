@@ -26,14 +26,23 @@ namespace QuanLyThuVien.DAL
                 FROM PhieuMuon pm
                 INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                 WHERE pm.MaPhieu = @MaPhieu
-                  AND pm.NgayTra IS NULL";
+                  AND ct.NgayTra IS NULL
+                  AND ct.MaSach IN ({0})";
 
-            List<int> sachTrongPhieu = new List<int>();
+            List<int> danhSachMaSachKhongTrung = danhSachMaSach.Distinct().ToList();
+            string parameterNames = string.Join(",", danhSachMaSachKhongTrung.Select((_, index) => "@MaSach" + index));
+            string selectQuery = string.Format(selectPhieuQuery, parameterNames);
+
+            List<int> sachCanTra = new List<int>();
             DateTime? ngayPhaiTra = null;
 
-            using (SqlCommand command = new SqlCommand(selectPhieuQuery, connection, transaction))
+            using (SqlCommand command = new SqlCommand(selectQuery, connection, transaction))
             {
                 command.Parameters.AddWithValue("@MaPhieu", maPhieu);
+                for (int i = 0; i < danhSachMaSachKhongTrung.Count; i++)
+                {
+                    command.Parameters.AddWithValue("@MaSach" + i, danhSachMaSachKhongTrung[i]);
+                }
 
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
@@ -44,51 +53,75 @@ namespace QuanLyThuVien.DAL
                             ngayPhaiTra = Convert.ToDateTime(reader["NgayPhaiTra"]);
                         }
 
-                        sachTrongPhieu.Add(Convert.ToInt32(reader["MaSach"]));
+                        sachCanTra.Add(Convert.ToInt32(reader["MaSach"]));
                     }
                 }
             }
 
-            if (!ngayPhaiTra.HasValue || sachTrongPhieu.Count == 0)
+            if (!ngayPhaiTra.HasValue || sachCanTra.Count == 0)
             {
                 tienPhatKyNay = 0;
-                thongBao = "Phiếu mượn này đã được trả hoặc không tồn tại.";
-                return false;
-            }
-
-            List<int> danhSachMaSachKhongTrung = danhSachMaSach.Distinct().ToList();
-            bool chonDuTatCaSach = sachTrongPhieu.Count == danhSachMaSachKhongTrung.Count &&
-                                   sachTrongPhieu.All(maSach => danhSachMaSachKhongTrung.Contains(maSach));
-
-            if (!chonDuTatCaSach)
-            {
-                tienPhatKyNay = 0;
-                thongBao = "Vui lòng chọn đầy đủ tất cả sách thuộc cùng một phiếu mượn trước khi trả.";
+                thongBao = "Sách đã được trả hoặc không tồn tại trong phiếu mượn.";
                 return false;
             }
 
             DateTime ngayTra = DateTime.Today;
             int soNgayTre = ngayTra > ngayPhaiTra.Value ? (ngayTra - ngayPhaiTra.Value).Days : 0;
-            tienPhatKyNay = soNgayTre * tienPhatMoiNgay;
+            decimal tienPhatMoiSach = soNgayTre * tienPhatMoiNgay;
+            tienPhatKyNay = tienPhatMoiSach * sachCanTra.Count;
+
+            const string updateChiTietQueryTemplate = @"
+                UPDATE ChiTietPM
+                SET NgayTra = @NgayTra,
+                    TienPhatKyNay = @TienPhatMoiSach
+                WHERE MaPhieu = @MaPhieu
+                  AND NgayTra IS NULL
+                  AND MaSach IN ({0})";
+
+            using (SqlCommand command = new SqlCommand(string.Format(updateChiTietQueryTemplate, parameterNames), connection, transaction))
+            {
+                command.Parameters.AddWithValue("@NgayTra", ngayTra);
+                command.Parameters.AddWithValue("@TienPhatMoiSach", tienPhatMoiSach);
+                command.Parameters.AddWithValue("@MaPhieu", maPhieu);
+                for (int i = 0; i < danhSachMaSachKhongTrung.Count; i++)
+                {
+                    command.Parameters.AddWithValue("@MaSach" + i, danhSachMaSachKhongTrung[i]);
+                }
+
+                if (command.ExecuteNonQuery() != sachCanTra.Count)
+                {
+                    thongBao = "Không thể cập nhật trạng thái trả sách.";
+                    return false;
+                }
+            }
 
             const string updatePhieuQuery = @"
                 UPDATE PhieuMuon
-                SET NgayTra = @NgayTra,
-                    TienPhatKyNay = @TienPhatKyNay
-                WHERE MaPhieu = @MaPhieu
-                  AND NgayTra IS NULL";
+                SET NgayTra =
+                    CASE
+                        WHEN NOT EXISTS
+                        (
+                            SELECT 1
+                            FROM ChiTietPM
+                            WHERE MaPhieu = @MaPhieu
+                              AND NgayTra IS NULL
+                        )
+                        THEN @NgayTra
+                        ELSE NULL
+                    END,
+                    TienPhatKyNay =
+                    (
+                        SELECT ISNULL(SUM(TienPhatKyNay), 0)
+                        FROM ChiTietPM
+                        WHERE MaPhieu = @MaPhieu
+                    )
+                WHERE MaPhieu = @MaPhieu";
 
             using (SqlCommand command = new SqlCommand(updatePhieuQuery, connection, transaction))
             {
                 command.Parameters.AddWithValue("@NgayTra", ngayTra);
-                command.Parameters.AddWithValue("@TienPhatKyNay", tienPhatKyNay);
                 command.Parameters.AddWithValue("@MaPhieu", maPhieu);
-
-                if (command.ExecuteNonQuery() != 1)
-                {
-                    thongBao = "Không thể cập nhật trạng thái trả sách cho phiếu mượn.";
-                    return false;
-                }
+                command.ExecuteNonQuery();
             }
 
             thongBao = "Trả sách thành công. Tiền phạt kỳ này: " + tienPhatKyNay.ToString("N0") + "đ";
@@ -167,10 +200,11 @@ namespace QuanLyThuVien.DAL
 
                         const string checkQuaHanQuery = @"
                             SELECT COUNT(*)
-                            FROM PhieuMuon
-                            WHERE MaDG = @MaDG
-                              AND NgayTra IS NULL
-                              AND NgayPhaiTra < CAST(GETDATE() AS DATE)";
+                            FROM PhieuMuon pm
+                            INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                            WHERE pm.MaDG = @MaDG
+                              AND ct.NgayTra IS NULL
+                              AND pm.NgayPhaiTra < CAST(GETDATE() AS DATE)";
 
                         using (SqlCommand command = new SqlCommand(checkQuaHanQuery, connection, transaction))
                         {
@@ -189,7 +223,7 @@ namespace QuanLyThuVien.DAL
                             FROM PhieuMuon pm
                             INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                             WHERE pm.MaDG = @MaDG
-                              AND pm.NgayTra IS NULL";
+                              AND ct.NgayTra IS NULL";
 
                         using (SqlCommand command = new SqlCommand(checkDangMuonQuery, connection, transaction))
                         {
@@ -288,23 +322,43 @@ namespace QuanLyThuVien.DAL
         public DataTable LayLichSuMuonTheoMaTaiKhoan(int maTaiKhoan)
         {
             const string query = @"
+                ;WITH LichSuMuon AS
+                (
+                    SELECT
+                        pm.MaPhieu,
+                        s.TenSach,
+                        pm.NgayMuon,
+                        pm.NgayPhaiTra,
+                        ct.NgayTra,
+                        ct.TienPhatKyNay,
+                        CASE
+                            WHEN ct.NgayTra IS NULL THEN N'Đang mượn'
+                            ELSE N'Đã trả'
+                        END AS TrangThaiMuon
+                    FROM DocGia dg
+                    INNER JOIN PhieuMuon pm ON dg.MaDG = pm.MaDG
+                    INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                    INNER JOIN Sach s ON ct.MaSach = s.MaSach
+                    WHERE dg.MaTaiKhoan = @MaTaiKhoan
+                )
                 SELECT
-                    pm.MaPhieu,
-                    s.TenSach,
-                    pm.NgayMuon,
-                    pm.NgayPhaiTra,
-                    pm.NgayTra,
-                    pm.TienPhatKyNay,
-                    CASE
-                        WHEN pm.NgayTra IS NULL THEN N'Đang mượn'
-                        ELSE N'Đã trả'
-                    END AS TrangThaiMuon
-                FROM DocGia dg
-                INNER JOIN PhieuMuon pm ON dg.MaDG = pm.MaDG
-                INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
-                INNER JOIN Sach s ON ct.MaSach = s.MaSach
-                WHERE dg.MaTaiKhoan = @MaTaiKhoan
-                ORDER BY pm.MaPhieu DESC, s.TenSach";
+                    MIN(MaPhieu) AS MaPhieu,
+                    TenSach,
+                    NgayMuon,
+                    NgayPhaiTra,
+                    NgayTra,
+                    TienPhatKyNay,
+                    TrangThaiMuon,
+                    COUNT(*) AS SoLanMuon
+                FROM LichSuMuon
+                GROUP BY
+                    TenSach,
+                    NgayMuon,
+                    NgayPhaiTra,
+                    NgayTra,
+                    TienPhatKyNay,
+                    TrangThaiMuon
+                ORDER BY MAX(MaPhieu) DESC, TenSach";
 
             return DbHelper.ExecuteQuery(query, new SqlParameter("@MaTaiKhoan", maTaiKhoan));
         }
@@ -321,8 +375,8 @@ namespace QuanLyThuVien.DAL
                     s.TenSach,
                     pm.NgayMuon,
                     pm.NgayPhaiTra,
-                    pm.NgayTra,
-                    pm.TienPhatKyNay,
+                    ct.NgayTra,
+                    ct.TienPhatKyNay,
                     DATEDIFF(DAY, pm.NgayMuon, CAST(GETDATE() AS DATE)) AS SoNgayMuon,
                     CASE
                         WHEN CAST(GETDATE() AS DATE) > pm.NgayPhaiTra
@@ -345,7 +399,7 @@ namespace QuanLyThuVien.DAL
                 INNER JOIN DocGia dg ON pm.MaDG = dg.MaDG
                 INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                 INNER JOIN Sach s ON ct.MaSach = s.MaSach
-                WHERE pm.NgayTra IS NULL
+                WHERE ct.NgayTra IS NULL
                 ORDER BY pm.MaPhieu, s.TenSach";
 
             return DbHelper.ExecuteQuery(query);
