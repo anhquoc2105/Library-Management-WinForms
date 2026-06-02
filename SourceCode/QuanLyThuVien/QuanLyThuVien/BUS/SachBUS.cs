@@ -35,9 +35,28 @@ namespace QuanLyThuVien.BUS
             return sachDAL.TimKiemSach(maSach, tenSach, theLoai, tacGia);
         }
 
+        public bool XoaSach(int maSach, out string thongBao)
+        {
+            if (maSach <= 0)
+            {
+                thongBao = "Mã sách không hợp lệ.";
+                return false;
+            }
+
+            return sachDAL.XoaSach(maSach, out thongBao);
+        }
+
         public bool ThemSach(SachDTO sach, out string thongBao)
         {
-            DataRow thamSo = thamSoDAL.LayThamSoHienTai();
+            DataRow thamSo = sach.MaTheLoai.HasValue
+                ? thamSoDAL.LayThamSoTheoTheLoai(sach.MaTheLoai.Value)
+                : thamSoDAL.LayThamSoHienTai();
+
+            if (thamSo == null)
+            {
+                thamSo = thamSoDAL.LayThamSoHienTai();
+            }
+
             if (thamSo == null)
             {
                 thongBao = "Không tìm thấy tham số hệ thống.";
@@ -58,9 +77,9 @@ namespace QuanLyThuVien.BUS
                 return false;
             }
 
-            if (sach.ChuDe != "A" && sach.ChuDe != "B" && sach.ChuDe != "C")
+            if (!sach.MaTheLoai.HasValue)
             {
-                thongBao = "Thể loại chỉ được là A, B hoặc C.";
+                thongBao = "Vui lòng chọn thể loại.";
                 return false;
             }
 

@@ -25,6 +25,17 @@ namespace QuanLyThuVien.BUS
             return docGiaDAL.LayThongTinTheoMaTaiKhoan(maTaiKhoan);
         }
 
+        public bool XoaDocGia(int maDG, out string thongBao)
+        {
+            if (maDG <= 0)
+            {
+                thongBao = "Mã độc giả không hợp lệ.";
+                return false;
+            }
+
+            return docGiaDAL.XoaDocGia(maDG, out thongBao);
+        }
+
         public bool ThemDocGia(DocGiaDTO docGia, out string thongBao)
         {
             DataRow thamSo = thamSoDAL.LayThamSoHienTai();

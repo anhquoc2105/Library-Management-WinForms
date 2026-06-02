@@ -28,6 +28,7 @@ namespace QuanLyThuVien.GUI
         private TextBox txtTriGia;
         private DataGridView dgvSach;
         private Button btnTiepNhan;
+        private Button btnXoa;
         private Button btnTaiLai;
         private Button btnDong;
 
@@ -92,10 +93,12 @@ namespace QuanLyThuVien.GUI
 
             txtTriGia = TaoTextBox(40, 276, 300);
 
+            btnXoa = TaoButton("Xóa", 830, 268, Color.FromArgb(190, 49, 68), Color.White);
             btnTiepNhan = TaoButton("Tiếp nhận", 950, 268, Color.FromArgb(28, 77, 125), Color.White);
             btnTaiLai = TaoButton("Tải lại", 1066, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
             btnDong = TaoButton("Đóng", 1182, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
+            btnXoa.Click += btnXoa_Click;
             btnTiepNhan.Click += btnTiepNhan_Click;
             btnTaiLai.Click += btnTaiLai_Click;
             btnDong.Click += (sender, e) => Close();
@@ -138,6 +141,7 @@ namespace QuanLyThuVien.GUI
             Controls.Add(txtNhaXB);
             Controls.Add(dtpNgayNhap);
             Controls.Add(txtTriGia);
+            Controls.Add(btnXoa);
             Controls.Add(btnTiepNhan);
             Controls.Add(btnTaiLai);
             Controls.Add(btnDong);
@@ -236,6 +240,52 @@ namespace QuanLyThuVien.GUI
         {
             LamMoiNhapLieu();
             TaiDuLieu();
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (dgvSach.CurrentRow == null || dgvSach.CurrentRow.IsNewRow)
+            {
+                MessageBox.Show("Vui lòng chọn sách cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            object maSachValue = dgvSach.CurrentRow.Cells["MaSach"].Value;
+            if (maSachValue == null || maSachValue == DBNull.Value)
+            {
+                MessageBox.Show("Không xác định được mã sách cần xóa.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int maSach = Convert.ToInt32(maSachValue);
+            string tenSach = dgvSach.CurrentRow.Cells["TenSach"].Value == null
+                ? string.Empty
+                : dgvSach.CurrentRow.Cells["TenSach"].Value.ToString();
+
+            DialogResult result = MessageBox.Show(
+                "Bạn có chắc muốn xóa sách \"" + tenSach + "\"?",
+                "Xác nhận xóa",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string thongBao;
+            bool thanhCong = sachBUS.XoaSach(maSach, out thongBao);
+
+            MessageBox.Show(
+                thongBao,
+                thanhCong ? "Thông báo" : "Lỗi",
+                MessageBoxButtons.OK,
+                thanhCong ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+
+            if (thanhCong)
+            {
+                TaiDanhSachSach();
+            }
         }
 
         private void TaiDuLieu()

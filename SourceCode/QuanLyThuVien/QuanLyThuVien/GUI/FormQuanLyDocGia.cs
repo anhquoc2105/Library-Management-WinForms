@@ -25,6 +25,7 @@ namespace QuanLyThuVien.GUI
         private DateTimePicker dtpNgayLapThe;
         private DataGridView dgvDocGia;
         private Button btnLapThe;
+        private Button btnXoa;
         private Button btnTaiLai;
         private Button btnDong;
 
@@ -88,10 +89,12 @@ namespace QuanLyThuVien.GUI
             dtpNgayLapThe.Size = new Size(400, 26);
             dtpNgayLapThe.Value = DateTime.Today;
 
+            btnXoa = TaoButton("Xóa", 830, 268, Color.FromArgb(190, 49, 68), Color.White);
             btnLapThe = TaoButton("Lập thẻ", 950, 268, Color.FromArgb(28, 77, 125), Color.White);
             btnTaiLai = TaoButton("Tải lại", 1066, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
             btnDong = TaoButton("Đóng", 1182, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
+            btnXoa.Click += btnXoa_Click;
             btnLapThe.Click += btnLapThe_Click;
             btnTaiLai.Click += btnTaiLai_Click;
             btnDong.Click += (sender, e) => Close();
@@ -132,6 +135,7 @@ namespace QuanLyThuVien.GUI
             Controls.Add(txtDiaChi);
             Controls.Add(txtEmail);
             Controls.Add(dtpNgayLapThe);
+            Controls.Add(btnXoa);
             Controls.Add(btnLapThe);
             Controls.Add(btnTaiLai);
             Controls.Add(btnDong);
@@ -206,6 +210,53 @@ namespace QuanLyThuVien.GUI
         {
             LamMoiNhapLieu();
             TaiDanhSachDocGia();
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (dgvDocGia.CurrentRow == null || dgvDocGia.CurrentRow.IsNewRow)
+            {
+                MessageBox.Show("Vui lòng chọn độc giả cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            object maDGValue = dgvDocGia.CurrentRow.Cells["MaDG"].Value;
+            if (maDGValue == null || maDGValue == DBNull.Value)
+            {
+                MessageBox.Show("Không xác định được mã độc giả cần xóa.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int maDG = Convert.ToInt32(maDGValue);
+            string tenDG = dgvDocGia.CurrentRow.Cells["TenDG"].Value == null
+                ? string.Empty
+                : dgvDocGia.CurrentRow.Cells["TenDG"].Value.ToString();
+
+            DialogResult result = MessageBox.Show(
+                "Bạn có chắc muốn xóa độc giả \"" + tenDG + "\"?",
+                "Xác nhận xóa",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string thongBao;
+            bool thanhCong = docGiaBUS.XoaDocGia(maDG, out thongBao);
+
+            MessageBox.Show(
+                thongBao,
+                thanhCong ? "Thông báo" : "Lỗi",
+                MessageBoxButtons.OK,
+                thanhCong ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+
+            if (thanhCong)
+            {
+                LamMoiNhapLieu();
+                TaiDanhSachDocGia();
+            }
         }
 
         private void LamMoiNhapLieu()

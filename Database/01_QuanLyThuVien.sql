@@ -85,6 +85,7 @@ CREATE TABLE dbo.ThamSo
     SoSachMuonToiDa INT NOT NULL,
     SoNgayMuonToiDa INT NOT NULL,
     TienPhat DECIMAL(18,2) NOT NULL,
+    MaTheLoai INT NULL,
     CONSTRAINT CK_ThamSo_GiaTriThe CHECK (GiaTriThe > 0),
     CONSTRAINT CK_ThamSo_SoTuoiDG CHECK (SoTuoiDG > 0),
     CONSTRAINT CK_ThamSo_SoTuoiDGToiDa CHECK (SoTuoiDGToiDa >= SoTuoiDG),
@@ -569,16 +570,25 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @ThoiGianXB INT;
-    SELECT TOP 1 @ThoiGianXB = ThoiGianXB
-    FROM dbo.ThamSo
-    ORDER BY MaThamSo;
-
     IF EXISTS
     (
         SELECT 1
         FROM inserted i
-        WHERE YEAR(GETDATE()) - i.NamXB > @ThoiGianXB
+        OUTER APPLY
+        (
+            SELECT TOP 1 ts.ThoiGianXB
+            FROM dbo.ThamSo ts
+            WHERE ts.MaTheLoai = i.MaTheLoai
+            ORDER BY ts.MaThamSo
+        ) tsTheLoai
+        OUTER APPLY
+        (
+            SELECT TOP 1 ts.ThoiGianXB
+            FROM dbo.ThamSo ts
+            WHERE ts.MaTheLoai IS NULL
+            ORDER BY ts.MaThamSo
+        ) tsMacDinh
+        WHERE YEAR(GETDATE()) - i.NamXB > ISNULL(tsTheLoai.ThoiGianXB, tsMacDinh.ThoiGianXB)
            OR i.NamXB > YEAR(GETDATE())
     )
     BEGIN

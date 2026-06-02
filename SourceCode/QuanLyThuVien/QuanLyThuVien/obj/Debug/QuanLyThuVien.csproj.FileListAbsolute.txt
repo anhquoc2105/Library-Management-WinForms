@@ -21,3 +21,6 @@ C:\Users\CodexSandboxOffline\.codex\.sandbox\cwd\af9852d3b6e75efb\SourceCode\Qua
 C:\Users\Dell\Desktop\quanlythuvien\build-check\QuanLyThuVien.exe.config
 C:\Users\Dell\Desktop\quanlythuvien\build-check\QuanLyThuVien.exe
 C:\Users\Dell\Desktop\quanlythuvien\build-check\QuanLyThuVien.pdb
+C:\Users\Dell\Desktop\quanlythuvien\build-check\Debug\QuanLyThuVien.exe.config
+C:\Users\Dell\Desktop\quanlythuvien\build-check\Debug\QuanLyThuVien.exe
+C:\Users\Dell\Desktop\quanlythuvien\build-check\Debug\QuanLyThuVien.pdb

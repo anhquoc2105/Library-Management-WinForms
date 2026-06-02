@@ -110,6 +110,8 @@ namespace QuanLyThuVien.DAL
 
         public bool ThemSach(SachDTO sach, out string thongBao)
         {
+            DamBaoTriggerKiemTraNamXB();
+
             const string query = @"
                 DECLARE @KetQua INT = 0;
 
@@ -210,6 +212,72 @@ namespace QuanLyThuVien.DAL
 
             thongBao = rowsAffected > 0 ? "Tiếp nhận sách mới thành công." : "Không thể tiếp nhận sách mới.";
             return ketQua == 1;
+        }
+
+        public bool XoaSach(int maSach, out string thongBao)
+        {
+            const string query = "DELETE FROM Sach WHERE MaSach = @MaSach";
+
+            try
+            {
+                int rows = DbHelper.ExecuteNonQuery(
+                    query,
+                    new SqlParameter("@MaSach", maSach));
+
+                thongBao = rows > 0 ? "Xóa sách thành công." : "Không tìm thấy sách cần xóa.";
+                return rows > 0;
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Number == 547)
+                {
+                    thongBao = "Không thể xóa sách đã phát sinh phiếu mượn/trả.";
+                    return false;
+                }
+
+                throw;
+            }
+        }
+
+        private void DamBaoTriggerKiemTraNamXB()
+        {
+            const string query = @"
+                CREATE OR ALTER TRIGGER dbo.TRG_Sach_ValidateNamXB
+                ON dbo.Sach
+                AFTER INSERT, UPDATE
+                AS
+                BEGIN
+                    SET NOCOUNT ON;
+
+                    IF EXISTS
+                    (
+                        SELECT 1
+                        FROM inserted i
+                        OUTER APPLY
+                        (
+                            SELECT TOP 1 ts.ThoiGianXB
+                            FROM dbo.ThamSo ts
+                            WHERE ts.MaTheLoai = i.MaTheLoai
+                            ORDER BY ts.MaThamSo
+                        ) tsTheLoai
+                        OUTER APPLY
+                        (
+                            SELECT TOP 1 ts.ThoiGianXB
+                            FROM dbo.ThamSo ts
+                            WHERE ts.MaTheLoai IS NULL
+                            ORDER BY ts.MaThamSo
+                        ) tsMacDinh
+                        WHERE YEAR(GETDATE()) - i.NamXB > ISNULL(tsTheLoai.ThoiGianXB, tsMacDinh.ThoiGianXB)
+                           OR i.NamXB > YEAR(GETDATE())
+                    )
+                    BEGIN
+                        RAISERROR(N'Chỉ nhận sách xuất bản trong khoảng năm hợp lệ.', 16, 1);
+                        ROLLBACK TRANSACTION;
+                        RETURN;
+                    END
+                END";
+
+            DbHelper.ExecuteNonQuery(query);
         }
     }
 }

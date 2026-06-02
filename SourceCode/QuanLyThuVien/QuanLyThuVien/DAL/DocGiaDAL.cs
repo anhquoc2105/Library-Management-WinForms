@@ -165,6 +165,79 @@ namespace QuanLyThuVien.DAL
             }
         }
 
+        public bool XoaDocGia(int maDG, out string thongBao)
+        {
+            const string selectTaiKhoanQuery = "SELECT MaTaiKhoan FROM DocGia WHERE MaDG = @MaDG";
+            const string deleteDocGiaQuery = "DELETE FROM DocGia WHERE MaDG = @MaDG";
+            const string deleteTaiKhoanQuery = "DELETE FROM TaiKhoan WHERE MaTaiKhoan = @MaTaiKhoan";
+
+            using (SqlConnection connection = DbHelper.GetConnection())
+            {
+                connection.Open();
+
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        object maTaiKhoanValue;
+                        using (SqlCommand selectTaiKhoanCommand = new SqlCommand(selectTaiKhoanQuery, connection, transaction))
+                        {
+                            selectTaiKhoanCommand.Parameters.AddWithValue("@MaDG", maDG);
+                            maTaiKhoanValue = selectTaiKhoanCommand.ExecuteScalar();
+                        }
+
+                        if (maTaiKhoanValue == null || maTaiKhoanValue == DBNull.Value)
+                        {
+                            transaction.Rollback();
+                            thongBao = "Không tìm thấy độc giả cần xóa.";
+                            return false;
+                        }
+
+                        int rows;
+                        using (SqlCommand deleteDocGiaCommand = new SqlCommand(deleteDocGiaQuery, connection, transaction))
+                        {
+                            deleteDocGiaCommand.Parameters.AddWithValue("@MaDG", maDG);
+                            rows = deleteDocGiaCommand.ExecuteNonQuery();
+                        }
+
+                        if (rows == 0)
+                        {
+                            transaction.Rollback();
+                            thongBao = "Không tìm thấy độc giả cần xóa.";
+                            return false;
+                        }
+
+                        using (SqlCommand deleteTaiKhoanCommand = new SqlCommand(deleteTaiKhoanQuery, connection, transaction))
+                        {
+                            deleteTaiKhoanCommand.Parameters.AddWithValue("@MaTaiKhoan", Convert.ToInt32(maTaiKhoanValue));
+                            deleteTaiKhoanCommand.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                        thongBao = "Xóa độc giả thành công.";
+                        return true;
+                    }
+                    catch (SqlException ex)
+                    {
+                        transaction.Rollback();
+
+                        if (ex.Number == 547)
+                        {
+                            thongBao = "Không thể xóa độc giả đã phát sinh phiếu mượn hoặc phiếu thu tiền phạt.";
+                            return false;
+                        }
+
+                        throw;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
         private static string TaoTenDangNhapDocGia(int maDocGia)
         {
             return "docgia" + maDocGia.ToString("D2");
