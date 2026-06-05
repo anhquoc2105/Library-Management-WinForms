@@ -24,3 +24,6 @@ C:\Users\Dell\Desktop\quanlythuvien\build-check\QuanLyThuVien.pdb
 C:\Users\Dell\Desktop\quanlythuvien\build-check\Debug\QuanLyThuVien.exe.config
 C:\Users\Dell\Desktop\quanlythuvien\build-check\Debug\QuanLyThuVien.exe
 C:\Users\Dell\Desktop\quanlythuvien\build-check\Debug\QuanLyThuVien.pdb
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\bin\CodexCheck\QuanLyThuVien.exe.config
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\bin\CodexCheck\QuanLyThuVien.exe
+C:\Users\Dell\Desktop\quanlythuvien\SourceCode\QuanLyThuVien\QuanLyThuVien\bin\CodexCheck\QuanLyThuVien.pdb

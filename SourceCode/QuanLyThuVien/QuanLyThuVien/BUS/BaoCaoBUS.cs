@@ -8,14 +8,14 @@ namespace QuanLyThuVien.BUS
     {
         private readonly BaoCaoDAL baoCaoDAL = new BaoCaoDAL();
 
-        public DataTable LayBaoCaoMuonTheoTheLoai(DateTime ngayBaoCao)
+        public DataTable LayBaoCaoSachMuon(DateTime ngayBaoCao)
         {
-            return baoCaoDAL.LayBaoCaoMuonTheoTheLoai(ngayBaoCao);
+            return baoCaoDAL.LayBaoCaoSachMuon(ngayBaoCao);
         }
 
-        public DataTable LayBaoCaoTraTre(DateTime ngayTra)
+        public DataTable LayBaoCaoSachTra(DateTime ngayBaoCao)
         {
-            return baoCaoDAL.LayBaoCaoTraTre(ngayTra);
+            return baoCaoDAL.LayBaoCaoSachTra(ngayBaoCao);
         }
     }
 }

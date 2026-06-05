@@ -7,58 +7,55 @@ namespace QuanLyThuVien.DAL
 {
     public class BaoCaoDAL
     {
-        public DataTable LayBaoCaoMuonTheoTheLoai(DateTime ngayBaoCao)
+        public DataTable LayBaoCaoSachMuon(DateTime ngayBaoCao)
         {
             const string query = @"
-                WITH BaoCaoMuonTheoTheLoai AS
-                (
-                    SELECT
-                        @NgayBaoCao AS NgayBaoCao,
-                        tl.TenTheLoai AS TenTheLoai,
-                        COUNT(ct.MaCTPM) AS SoLuotMuon
-                    FROM PhieuMuon pm
-                    INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
-                    INNER JOIN Sach s ON ct.MaSach = s.MaSach
-                    LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
-                    WHERE CAST(pm.NgayMuon AS DATE) = @NgayBaoCao
-                    GROUP BY tl.TenTheLoai
-                )
                 SELECT
-                    NgayBaoCao,
-                    TenTheLoai,
-                    SoLuotMuon,
-                    CAST(
-                        SoLuotMuon * 100.0 /
-                        NULLIF(SUM(SoLuotMuon) OVER (), 0)
-                        AS DECIMAL(10,2)
-                    ) AS TiLe
-                FROM BaoCaoMuonTheoTheLoai
-                ORDER BY TenTheLoai";
+                    s.TenSach,
+                    dg.TenDG,
+                    pm.NgayMuon
+                FROM PhieuMuon pm
+                INNER JOIN DocGia dg ON pm.MaDG = dg.MaDG
+                INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                INNER JOIN Sach s ON ct.MaSach = s.MaSach
+                WHERE CAST(pm.NgayMuon AS DATE) = @NgayBaoCao
+                ORDER BY pm.NgayMuon, s.TenSach";
 
             return DbHelper.ExecuteQuery(
                 query,
                 new SqlParameter("@NgayBaoCao", ngayBaoCao.Date));
         }
 
-        public DataTable LayBaoCaoTraTre(DateTime ngayTra)
+        public DataTable LayBaoCaoSachTra(DateTime ngayBaoCao)
         {
             const string query = @"
                 SELECT
                     s.TenSach,
+                    dg.TenDG,
                     pm.NgayMuon,
                     ct.NgayTra,
-                    DATEDIFF(DAY, pm.NgayPhaiTra, ct.NgayTra) AS SoNgayTraTre
+                    CASE
+                        WHEN DATEDIFF(DAY, DATEADD(DAY, ISNULL(ts.SoNgayMuonToiDa, 0), CAST(pm.NgayMuon AS DATE)), CAST(ct.NgayTra AS DATE)) > 0
+                        THEN DATEDIFF(DAY, DATEADD(DAY, ISNULL(ts.SoNgayMuonToiDa, 0), CAST(pm.NgayMuon AS DATE)), CAST(ct.NgayTra AS DATE))
+                        ELSE 0
+                    END AS SoNgayTre
                 FROM PhieuMuon pm
+                INNER JOIN DocGia dg ON pm.MaDG = dg.MaDG
                 INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                 INNER JOIN Sach s ON ct.MaSach = s.MaSach
+                OUTER APPLY (
+                    SELECT TOP 1 SoNgayMuonToiDa
+                    FROM ThamSo
+                    WHERE MaTheLoai IS NULL
+                    ORDER BY MaThamSo
+                ) ts
                 WHERE ct.NgayTra IS NOT NULL
-                  AND ct.NgayTra > pm.NgayPhaiTra
-                  AND CAST(ct.NgayTra AS DATE) = @NgayTra
-                ORDER BY s.TenSach";
+                  AND CAST(ct.NgayTra AS DATE) = @NgayBaoCao
+                ORDER BY ct.NgayTra, s.TenSach";
 
             return DbHelper.ExecuteQuery(
                 query,
-                new SqlParameter("@NgayTra", ngayTra.Date));
+                new SqlParameter("@NgayBaoCao", ngayBaoCao.Date));
         }
     }
 }

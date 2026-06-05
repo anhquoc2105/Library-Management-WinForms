@@ -1,7 +1,6 @@
 using System;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
 using QuanLyThuVien.BUS;
 
@@ -9,13 +8,17 @@ namespace QuanLyThuVien.GUI
 {
     public class FormBaoCao : Form
     {
+        private const string BaoCaoSachMuon = "SachMuon";
+        private const string BaoCaoSachTra = "SachTra";
+
         private readonly BaoCaoBUS baoCaoBUS = new BaoCaoBUS();
+
         private Label lblTieuDe;
         private Label lblMoTa;
         private Label lblNgayBaoCao;
         private DateTimePicker dtpNgayBaoCao;
-        private Button btnMuonTheoTheLoai;
-        private Button btnTraTre;
+        private Button btnSachMuon;
+        private Button btnSachTra;
         private Button btnDong;
         private Panel pnlEmptyState;
         private Label lblEmptyTitle;
@@ -37,7 +40,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Báo cáo";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1040, 660);
+            ClientSize = new Size(1120, 720);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(243, 246, 250);
@@ -48,33 +51,33 @@ namespace QuanLyThuVien.GUI
             lblTieuDe.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
             lblTieuDe.ForeColor = Color.FromArgb(28, 77, 125);
             lblTieuDe.AutoSize = true;
-            lblTieuDe.Location = new Point(34, 24);
+            lblTieuDe.Location = new Point(38, 28);
 
             lblMoTa = new Label();
-            lblMoTa.Text = "Chọn loại báo cáo để xem tổng hợp dữ liệu mượn sách và các trường hợp trả trễ.";
+            lblMoTa.Text = "Chọn ngày và loại báo cáo để xem danh sách sách mượn hoặc sách trả.";
             lblMoTa.ForeColor = Color.FromArgb(102, 117, 132);
             lblMoTa.Font = new Font("Segoe UI", 10.5F);
             lblMoTa.AutoSize = true;
-            lblMoTa.Location = new Point(38, 64);
+            lblMoTa.Location = new Point(42, 68);
 
             lblNgayBaoCao = new Label();
             lblNgayBaoCao.Text = "Ngày báo cáo";
             lblNgayBaoCao.AutoSize = true;
-            lblNgayBaoCao.Location = new Point(40, 112);
+            lblNgayBaoCao.Location = new Point(44, 118);
 
             dtpNgayBaoCao = new DateTimePicker();
             dtpNgayBaoCao.Format = DateTimePickerFormat.Short;
-            dtpNgayBaoCao.Location = new Point(154, 108);
-            dtpNgayBaoCao.Size = new Size(130, 26);
+            dtpNgayBaoCao.Location = new Point(154, 114);
+            dtpNgayBaoCao.Size = new Size(150, 30);
             dtpNgayBaoCao.Value = DateTime.Today;
             dtpNgayBaoCao.ValueChanged += dtpNgayBaoCao_ValueChanged;
 
-            btnMuonTheoTheLoai = TaoButton("Mượn theo thể loại", 326, 104, 180, Color.FromArgb(28, 77, 125), Color.White);
-            btnTraTre = TaoButton("Sách trả trễ", 518, 104, 140, Color.FromArgb(28, 77, 125), Color.White);
-            btnDong = TaoButton("Đóng", 900, 112, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnSachMuon = TaoButton("Sách mượn", 338, 108, 150, Color.FromArgb(28, 77, 125), Color.White);
+            btnSachTra = TaoButton("Sách trả", 502, 108, 140, Color.FromArgb(28, 77, 125), Color.White);
+            btnDong = TaoButton("Đóng", 956, 108, 100, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
-            btnMuonTheoTheLoai.Click += (sender, e) => HienThiBaoCaoMuonTheoTheLoai();
-            btnTraTre.Click += (sender, e) => HienThiBaoCaoTraTre();
+            btnSachMuon.Click += (sender, e) => HienThiBaoCaoSachMuon();
+            btnSachTra.Click += (sender, e) => HienThiBaoCaoSachTra();
             btnDong.Click += (sender, e) => Close();
 
             TaoEmptyState();
@@ -84,8 +87,8 @@ namespace QuanLyThuVien.GUI
             Controls.Add(lblMoTa);
             Controls.Add(lblNgayBaoCao);
             Controls.Add(dtpNgayBaoCao);
-            Controls.Add(btnMuonTheoTheLoai);
-            Controls.Add(btnTraTre);
+            Controls.Add(btnSachMuon);
+            Controls.Add(btnSachTra);
             Controls.Add(btnDong);
             Controls.Add(pnlEmptyState);
             Controls.Add(pnlReport);
@@ -94,8 +97,8 @@ namespace QuanLyThuVien.GUI
         private void TaoEmptyState()
         {
             pnlEmptyState = new Panel();
-            pnlEmptyState.Location = new Point(24, 176);
-            pnlEmptyState.Size = new Size(980, 440);
+            pnlEmptyState.Location = new Point(24, 184);
+            pnlEmptyState.Size = new Size(1072, 480);
             pnlEmptyState.BackColor = Color.White;
             pnlEmptyState.BorderStyle = BorderStyle.FixedSingle;
 
@@ -104,14 +107,14 @@ namespace QuanLyThuVien.GUI
             lblEmptyTitle.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
             lblEmptyTitle.ForeColor = Color.FromArgb(28, 77, 125);
             lblEmptyTitle.AutoSize = true;
-            lblEmptyTitle.Location = new Point(360, 150);
+            lblEmptyTitle.Location = new Point(400, 170);
 
             lblEmptySubtitle = new Label();
-            lblEmptySubtitle.Text = "Bấm \"Mượn theo thể loại\" hoặc \"Sách trả trễ\" để hiển thị dữ liệu.";
+            lblEmptySubtitle.Text = "Bấm Sách mượn hoặc Sách trả để hiển thị dữ liệu theo ngày đã chọn.";
             lblEmptySubtitle.Font = new Font("Segoe UI", 11F);
             lblEmptySubtitle.ForeColor = Color.FromArgb(102, 117, 132);
             lblEmptySubtitle.AutoSize = true;
-            lblEmptySubtitle.Location = new Point(230, 195);
+            lblEmptySubtitle.Location = new Point(282, 215);
 
             pnlEmptyState.Controls.Add(lblEmptyTitle);
             pnlEmptyState.Controls.Add(lblEmptySubtitle);
@@ -120,33 +123,33 @@ namespace QuanLyThuVien.GUI
         private void TaoReportPanel()
         {
             pnlReport = new Panel();
-            pnlReport.Location = new Point(24, 176);
-            pnlReport.Size = new Size(980, 440);
+            pnlReport.Location = new Point(24, 184);
+            pnlReport.Size = new Size(1072, 480);
             pnlReport.BackColor = Color.White;
             pnlReport.BorderStyle = BorderStyle.FixedSingle;
             pnlReport.Visible = false;
 
             lblTenBaoCao = new Label();
-            lblTenBaoCao.Text = "Báo cáo thống kê";
+            lblTenBaoCao.Text = "Báo cáo";
             lblTenBaoCao.TextAlign = ContentAlignment.MiddleLeft;
             lblTenBaoCao.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             lblTenBaoCao.ForeColor = Color.White;
             lblTenBaoCao.BackColor = Color.FromArgb(28, 77, 125);
             lblTenBaoCao.Location = new Point(24, 22);
-            lblTenBaoCao.Size = new Size(930, 38);
+            lblTenBaoCao.Size = new Size(1022, 40);
             lblTenBaoCao.Padding = new Padding(16, 0, 0, 0);
 
             lblThoiGian = new Label();
-            lblThoiGian.Text = "Ngay: --";
+            lblThoiGian.Text = "Ngày: --";
             lblThoiGian.TextAlign = ContentAlignment.MiddleCenter;
             lblThoiGian.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             lblThoiGian.ForeColor = Color.FromArgb(62, 76, 91);
-            lblThoiGian.Location = new Point(24, 76);
-            lblThoiGian.Size = new Size(930, 28);
+            lblThoiGian.Location = new Point(24, 78);
+            lblThoiGian.Size = new Size(1022, 28);
 
             dgvBaoCao = new DataGridView();
-            dgvBaoCao.Location = new Point(24, 118);
-            dgvBaoCao.Size = new Size(930, 248);
+            dgvBaoCao.Location = new Point(24, 122);
+            dgvBaoCao.Size = new Size(1022, 300);
             dgvBaoCao.ReadOnly = true;
             dgvBaoCao.AllowUserToAddRows = false;
             dgvBaoCao.AllowUserToDeleteRows = false;
@@ -164,7 +167,7 @@ namespace QuanLyThuVien.GUI
             dgvBaoCao.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgvBaoCao.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             dgvBaoCao.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dgvBaoCao.ColumnHeadersHeight = 40;
+            dgvBaoCao.ColumnHeadersHeight = 42;
             dgvBaoCao.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvBaoCao.DefaultCellStyle.Font = new Font("Segoe UI", 10.5F);
             dgvBaoCao.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -179,8 +182,8 @@ namespace QuanLyThuVien.GUI
             lblTongKet.ForeColor = Color.FromArgb(48, 63, 79);
             lblTongKet.BackColor = Color.FromArgb(248, 250, 252);
             lblTongKet.BorderStyle = BorderStyle.FixedSingle;
-            lblTongKet.Location = new Point(24, 378);
-            lblTongKet.Size = new Size(930, 34);
+            lblTongKet.Location = new Point(24, 434);
+            lblTongKet.Size = new Size(1022, 34);
             lblTongKet.Padding = new Padding(0, 0, 16, 0);
 
             pnlReport.Controls.Add(lblTenBaoCao);
@@ -193,7 +196,7 @@ namespace QuanLyThuVien.GUI
         {
             Button button = new Button();
             button.Text = text;
-            button.Size = new Size(width, 40);
+            button.Size = new Size(width, 42);
             button.Location = new Point(x, y);
             button.BackColor = backColor;
             button.ForeColor = foreColor;
@@ -209,143 +212,126 @@ namespace QuanLyThuVien.GUI
 
         private void dtpNgayBaoCao_ValueChanged(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(loaiBaoCaoDangXem))
+            if (loaiBaoCaoDangXem == BaoCaoSachMuon)
             {
-                return;
+                HienThiBaoCaoSachMuon();
             }
-
-            if (loaiBaoCaoDangXem == "MuonTheoTheLoai")
+            else if (loaiBaoCaoDangXem == BaoCaoSachTra)
             {
-                HienThiBaoCaoMuonTheoTheLoai();
-            }
-            else if (loaiBaoCaoDangXem == "TraTre")
-            {
-                HienThiBaoCaoTraTre();
+                HienThiBaoCaoSachTra();
             }
         }
 
-        private void HienThiBaoCaoMuonTheoTheLoai()
+        private void HienThiBaoCaoSachMuon()
         {
             DateTime ngayBaoCao = dtpNgayBaoCao.Value.Date;
-            loaiBaoCaoDangXem = "MuonTheoTheLoai";
-            DataTable sourceTable = baoCaoBUS.LayBaoCaoMuonTheoTheLoai(ngayBaoCao);
-            dgvBaoCao.DataSource = TaoBangBaoCaoMuonTheoTheLoai(sourceTable);
+            loaiBaoCaoDangXem = BaoCaoSachMuon;
 
-            int tongSoLuotMuon = sourceTable.AsEnumerable().Sum(row => row.Field<int>("SoLuotMuon"));
+            DataTable sourceTable = baoCaoBUS.LayBaoCaoSachMuon(ngayBaoCao);
+            dgvBaoCao.DataSource = TaoBangBaoCaoSachMuon(sourceTable);
 
             pnlEmptyState.Visible = false;
             pnlReport.Visible = true;
+            lblTenBaoCao.Text = "Báo cáo sách mượn theo ngày";
+            lblThoiGian.Text = "Ngày mượn: " + ngayBaoCao.ToString("dd/MM/yyyy");
+            lblTongKet.Text = "Tổng số sách mượn: " + sourceTable.Rows.Count;
 
-            lblTenBaoCao.Text = "Báo cáo thống kê tình hình mượn sách theo thể loại";
-            lblThoiGian.Visible = true;
-            lblTongKet.Visible = true;
-            lblThoiGian.Text = "Ng\u00e0y b\u00e1o c\u00e1o: " + ngayBaoCao.ToString("dd/MM/yyyy");
-            lblTongKet.Text = "Tổng số lượt mượn: " + tongSoLuotMuon;
-
-            DinhDangBaoCaoMuonTheoTheLoai();
+            DinhDangBaoCaoSachMuon();
         }
 
-        private void HienThiBaoCaoTraTre()
+        private void HienThiBaoCaoSachTra()
         {
-            DateTime ngayTra = dtpNgayBaoCao.Value.Date;
+            DateTime ngayBaoCao = dtpNgayBaoCao.Value.Date;
+            loaiBaoCaoDangXem = BaoCaoSachTra;
 
-            loaiBaoCaoDangXem = "TraTre";
-            DataTable sourceTable = baoCaoBUS.LayBaoCaoTraTre(ngayTra);
-            dgvBaoCao.DataSource = TaoBangBaoCaoTraTre(sourceTable);
+            DataTable sourceTable = baoCaoBUS.LayBaoCaoSachTra(ngayBaoCao);
+            dgvBaoCao.DataSource = TaoBangBaoCaoSachTra(sourceTable);
 
             pnlEmptyState.Visible = false;
             pnlReport.Visible = true;
+            lblTenBaoCao.Text = "Báo cáo sách trả theo ngày";
+            lblThoiGian.Text = "Ngày trả: " + ngayBaoCao.ToString("dd/MM/yyyy");
+            lblTongKet.Text = "Tổng số sách trả: " + sourceTable.Rows.Count;
 
-            lblTenBaoCao.Text = "Báo cáo thống kê sách trả trễ";
-            lblThoiGian.Visible = true;
-            lblThoiGian.Text = "Ngày trả: " + ngayTra.ToString("dd/MM/yyyy");
-            lblTongKet.Visible = false;
-
-            DinhDangBaoCaoTraTre();
+            DinhDangBaoCaoSachTra();
         }
 
-        private DataTable TaoBangBaoCaoMuonTheoTheLoai(DataTable sourceTable)
+        private DataTable TaoBangBaoCaoSachMuon(DataTable sourceTable)
         {
             DataTable table = new DataTable();
-            table.Columns.Add("STT", typeof(int));
-            table.Columns.Add("TenTheLoai", typeof(string));
-            table.Columns.Add("SoLuotMuon", typeof(int));
-            table.Columns.Add("TiLe", typeof(string));
+            table.Columns.Add("TenSach", typeof(string));
+            table.Columns.Add("TenDG", typeof(string));
+            table.Columns.Add("NgayMuon", typeof(string));
 
-            for (int i = 0; i < sourceTable.Rows.Count; i++)
+            foreach (DataRow sourceRow in sourceTable.Rows)
             {
-                DataRow sourceRow = sourceTable.Rows[i];
                 table.Rows.Add(
-                    i + 1,
-                    sourceRow["TenTheLoai"],
-                    sourceRow["SoLuotMuon"],
-                    Convert.ToDecimal(sourceRow["TiLe"]).ToString("0.00"));
+                    sourceRow["TenSach"],
+                    sourceRow["TenDG"],
+                    Convert.ToDateTime(sourceRow["NgayMuon"]).ToString("dd/MM/yyyy"));
             }
 
             return table;
         }
 
-        private DataTable TaoBangBaoCaoTraTre(DataTable sourceTable)
+        private DataTable TaoBangBaoCaoSachTra(DataTable sourceTable)
         {
             DataTable table = new DataTable();
-            table.Columns.Add("STT", typeof(int));
             table.Columns.Add("TenSach", typeof(string));
+            table.Columns.Add("TenDG", typeof(string));
             table.Columns.Add("NgayMuon", typeof(string));
             table.Columns.Add("NgayTra", typeof(string));
-            table.Columns.Add("SoNgayTraTre", typeof(int));
+            table.Columns.Add("SoNgayTre", typeof(int));
 
-            for (int i = 0; i < sourceTable.Rows.Count; i++)
+            foreach (DataRow sourceRow in sourceTable.Rows)
             {
-                DataRow sourceRow = sourceTable.Rows[i];
                 table.Rows.Add(
-                    i + 1,
                     sourceRow["TenSach"],
+                    sourceRow["TenDG"],
                     Convert.ToDateTime(sourceRow["NgayMuon"]).ToString("dd/MM/yyyy"),
                     Convert.ToDateTime(sourceRow["NgayTra"]).ToString("dd/MM/yyyy"),
-                    sourceRow["SoNgayTraTre"]);
+                    Convert.ToInt32(sourceRow["SoNgayTre"]));
             }
 
             return table;
         }
 
-        private void DinhDangBaoCaoMuonTheoTheLoai()
+        private void DinhDangBaoCaoSachMuon()
         {
             if (dgvBaoCao.Columns.Count == 0)
             {
                 return;
             }
 
-            dgvBaoCao.Columns["STT"].HeaderText = "STT";
-            dgvBaoCao.Columns["TenTheLoai"].HeaderText = "Tên thể loại";
-            dgvBaoCao.Columns["SoLuotMuon"].HeaderText = "Số lượt mượn";
-            dgvBaoCao.Columns["TiLe"].HeaderText = "Tỉ lệ";
+            dgvBaoCao.Columns["TenSach"].HeaderText = "Tên sách";
+            dgvBaoCao.Columns["TenDG"].HeaderText = "Độc giả";
+            dgvBaoCao.Columns["NgayMuon"].HeaderText = "Ngày mượn";
 
-            dgvBaoCao.Columns["STT"].FillWeight = 55;
-            dgvBaoCao.Columns["TenTheLoai"].FillWeight = 200;
-            dgvBaoCao.Columns["SoLuotMuon"].FillWeight = 140;
-            dgvBaoCao.Columns["TiLe"].FillWeight = 120;
+            dgvBaoCao.Columns["TenSach"].FillWeight = 240;
+            dgvBaoCao.Columns["TenDG"].FillWeight = 180;
+            dgvBaoCao.Columns["NgayMuon"].FillWeight = 110;
 
             dgvBaoCao.ClearSelection();
         }
 
-        private void DinhDangBaoCaoTraTre()
+        private void DinhDangBaoCaoSachTra()
         {
             if (dgvBaoCao.Columns.Count == 0)
             {
                 return;
             }
 
-            dgvBaoCao.Columns["STT"].HeaderText = "STT";
             dgvBaoCao.Columns["TenSach"].HeaderText = "Tên sách";
+            dgvBaoCao.Columns["TenDG"].HeaderText = "Độc giả";
             dgvBaoCao.Columns["NgayMuon"].HeaderText = "Ngày mượn";
             dgvBaoCao.Columns["NgayTra"].HeaderText = "Ngày trả";
-            dgvBaoCao.Columns["SoNgayTraTre"].HeaderText = "Số ngày trả trễ";
+            dgvBaoCao.Columns["SoNgayTre"].HeaderText = "Số ngày trễ";
 
-            dgvBaoCao.Columns["STT"].FillWeight = 55;
-            dgvBaoCao.Columns["TenSach"].FillWeight = 230;
-            dgvBaoCao.Columns["NgayMuon"].FillWeight = 130;
-            dgvBaoCao.Columns["NgayTra"].FillWeight = 130;
-            dgvBaoCao.Columns["SoNgayTraTre"].FillWeight = 140;
+            dgvBaoCao.Columns["TenSach"].FillWeight = 220;
+            dgvBaoCao.Columns["TenDG"].FillWeight = 160;
+            dgvBaoCao.Columns["NgayMuon"].FillWeight = 115;
+            dgvBaoCao.Columns["NgayTra"].FillWeight = 115;
+            dgvBaoCao.Columns["SoNgayTre"].FillWeight = 110;
 
             dgvBaoCao.ClearSelection();
         }

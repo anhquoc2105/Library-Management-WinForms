@@ -195,27 +195,25 @@ namespace QuanLyThuVien.GUI
         private DataTable TaoBangHienThi(DataTable sourceTable)
         {
             DataTable table = new DataTable();
-            table.Columns.Add("STT", typeof(int));
             table.Columns.Add("MaSach", typeof(string));
             table.Columns.Add("TenSach", typeof(string));
             table.Columns.Add("TenTheLoai", typeof(string));
             table.Columns.Add("TenTG", typeof(string));
             table.Columns.Add("NhaXB", typeof(string));
             table.Columns.Add("NamXB", typeof(int));
-            table.Columns.Add("TinhTrang", typeof(string));
+            table.Columns.Add("SoLuongTon", typeof(int));
 
             for (int i = 0; i < sourceTable.Rows.Count; i++)
             {
                 DataRow sourceRow = sourceTable.Rows[i];
                 table.Rows.Add(
-                    i + 1,
                     Convert.ToInt32(sourceRow["MaSach"]).ToString("D5"),
                     sourceRow["TenSach"],
                     sourceRow["TenTheLoai"],
                     sourceRow["TenTG"],
                     sourceRow["NhaXB"],
                     sourceRow["NamXB"],
-                    sourceRow["TinhTrang"]);
+                    sourceRow["SoLuongTon"]);
             }
 
             return table;
@@ -228,23 +226,21 @@ namespace QuanLyThuVien.GUI
                 return;
             }
 
-            dgvSach.Columns["STT"].HeaderText = "STT";
             dgvSach.Columns["MaSach"].HeaderText = "Mã sách";
             dgvSach.Columns["TenSach"].HeaderText = "Tên sách";
             dgvSach.Columns["TenTheLoai"].HeaderText = "Thể loại";
             dgvSach.Columns["TenTG"].HeaderText = "Tác giả";
             dgvSach.Columns["NhaXB"].HeaderText = "Nhà XB";
             dgvSach.Columns["NamXB"].HeaderText = "Năm XB";
-            dgvSach.Columns["TinhTrang"].HeaderText = "Tình trạng";
+            dgvSach.Columns["SoLuongTon"].HeaderText = "Số lượng";
 
-            dgvSach.Columns["STT"].FillWeight = 55;
             dgvSach.Columns["MaSach"].FillWeight = 80;
             dgvSach.Columns["TenSach"].FillWeight = 165;
             dgvSach.Columns["TenTheLoai"].FillWeight = 100;
             dgvSach.Columns["TenTG"].FillWeight = 140;
             dgvSach.Columns["NhaXB"].FillWeight = 130;
             dgvSach.Columns["NamXB"].FillWeight = 80;
-            dgvSach.Columns["TinhTrang"].FillWeight = 110;
+            dgvSach.Columns["SoLuongTon"].FillWeight = 90;
 
             dgvSach.ClearSelection();
         }

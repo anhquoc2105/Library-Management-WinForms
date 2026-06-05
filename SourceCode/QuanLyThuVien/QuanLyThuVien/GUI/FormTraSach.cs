@@ -349,7 +349,6 @@ namespace QuanLyThuVien.GUI
         {
             DataTable table = new DataTable();
             table.Columns.Add("ChonTra", typeof(bool));
-            table.Columns.Add("STT", typeof(int));
             table.Columns.Add("MaPhieu", typeof(int));
             table.Columns.Add("MaSachGoc", typeof(int));
             table.Columns.Add("TenDG", typeof(string));
@@ -380,7 +379,6 @@ namespace QuanLyThuVien.GUI
 
                 table.Rows.Add(
                     false,
-                    i + 1,
                     sourceRow["MaPhieu"],
                     sourceRow["MaSach"],
                     sourceRow["TenDG"],
@@ -404,7 +402,6 @@ namespace QuanLyThuVien.GUI
             }
 
             dgvSachDangMuon.Columns["ChonTra"].HeaderText = "Chọn";
-            dgvSachDangMuon.Columns["STT"].HeaderText = "STT";
             dgvSachDangMuon.Columns["TenSach"].HeaderText = "Tên sách";
             dgvSachDangMuon.Columns["MaSach"].HeaderText = "Mã sách";
             dgvSachDangMuon.Columns["NgayMuon"].HeaderText = "Ngày mượn";
@@ -412,7 +409,6 @@ namespace QuanLyThuVien.GUI
             dgvSachDangMuon.Columns["TienPhatDuKien"].HeaderText = "Tiền phạt";
 
             dgvSachDangMuon.Columns["ChonTra"].FillWeight = 45;
-            dgvSachDangMuon.Columns["STT"].FillWeight = 50;
             dgvSachDangMuon.Columns["TenSach"].FillWeight = 180;
             dgvSachDangMuon.Columns["MaSach"].FillWeight = 100;
             dgvSachDangMuon.Columns["NgayMuon"].FillWeight = 120;
@@ -420,7 +416,6 @@ namespace QuanLyThuVien.GUI
             dgvSachDangMuon.Columns["TienPhatDuKien"].FillWeight = 120;
 
             dgvSachDangMuon.Columns["ChonTra"].ReadOnly = false;
-            dgvSachDangMuon.Columns["STT"].ReadOnly = true;
             dgvSachDangMuon.Columns["TenSach"].ReadOnly = true;
             dgvSachDangMuon.Columns["MaSach"].ReadOnly = true;
             dgvSachDangMuon.Columns["NgayMuon"].ReadOnly = true;

@@ -397,7 +397,7 @@ namespace QuanLyThuVien.GUI
                 dgvSachCon.Columns["TriGia"].DefaultCellStyle.Format = "N0";
             }
             if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].HeaderText = "Số lượng";
-            if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].HeaderText = "Tình trạng";
+            if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].Visible = false;
             if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].Visible = false;
 
             if (dgvSachCon.Columns["MaSachHienThi"] != null) dgvSachCon.Columns["MaSachHienThi"].FillWeight = 75;
@@ -408,7 +408,6 @@ namespace QuanLyThuVien.GUI
             if (dgvSachCon.Columns["NhaXB"] != null) dgvSachCon.Columns["NhaXB"].FillWeight = 140;
             if (dgvSachCon.Columns["TriGia"] != null) dgvSachCon.Columns["TriGia"].FillWeight = 90;
             if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].FillWeight = 95;
-            if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].FillWeight = 100;
 
             dgvSachCon.ClearSelection();
         }

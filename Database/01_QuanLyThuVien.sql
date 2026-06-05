@@ -556,7 +556,7 @@ BEGIN
     INNER JOIN ChangedPhieu cp ON pm.MaPhieu = cp.MaPhieu
     OUTER APPLY
     (
-        SELECT SUM(TienPhatKyNay) AS TongTienPhatKyNay
+        SELECT SUM(c.TienPhatKyNay) AS TongTienPhatKyNay
         FROM dbo.ChiTietPM c
         WHERE c.MaPhieu = pm.MaPhieu
     ) ct;
@@ -577,7 +577,7 @@ BEGIN
     INNER JOIN AffectedDocGia adg ON dg.MaDG = adg.MaDG
     OUTER APPLY
     (
-        SELECT SUM(TienPhatKyNay) AS TongTienPhat
+        SELECT SUM(ct.TienPhatKyNay) AS TongTienPhat
         FROM dbo.PhieuMuon pm
         INNER JOIN dbo.ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
         WHERE pm.MaDG = dg.MaDG
@@ -642,7 +642,7 @@ BEGIN
     INNER JOIN AffectedDocGia adg ON dg.MaDG = adg.MaDG
     OUTER APPLY
     (
-        SELECT SUM(TienPhatKyNay) AS TongTienPhat
+        SELECT SUM(ct.TienPhatKyNay) AS TongTienPhat
         FROM dbo.PhieuMuon pm
         INNER JOIN dbo.ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
         WHERE pm.MaDG = dg.MaDG
@@ -969,13 +969,15 @@ INSERT INTO dbo.PhieuMuon (MaDG, NgayMuon, NgayTra, TienPhatKyNay)
 VALUES
     (1, '2026-05-10', NULL, 0),
     (2, '2026-05-11', '2026-05-17', 2000),
-    (3, '2026-05-18', NULL, 0),
+    (3, '2026-05-18', '2026-06-05', 28000),
     (4, '2026-05-20', '2026-05-23', 0),
     (5, '2026-05-24', NULL, 0),
     (6, '2026-05-25', '2026-05-30', 1000),
     (2, '2026-06-01', NULL, 0),
     (4, '2026-06-01', '2026-06-04', 0),
-    (6, '2026-06-02', '2026-06-08', 2000);
+    (7, '2026-06-05', NULL, 0),
+    (8, '2026-06-05', NULL, 0),
+    (7, '2026-06-03', '2026-06-05', 0);
 GO
 
 INSERT INTO dbo.ChiTietPM (MaPhieu, MaSach, NgayThang, NgayTra, TienPhatKyNay, SoLanMuon)
@@ -983,20 +985,42 @@ VALUES
     (1, 1, '2026-05-10', NULL, 0, 1),
     (1, 5, '2026-05-10', NULL, 0, 1),
     (2, 2, '2026-05-11', '2026-05-17', 2000, 1),
-    (3, 6, '2026-05-18', NULL, 0, 1),
-    (3, 7, '2026-05-18', NULL, 0, 1),
+    (3, 6, '2026-05-18', '2026-06-05', 14000, 1),
+    (3, 7, '2026-05-18', '2026-06-05', 14000, 1),
     (4, 3, '2026-05-20', '2026-05-23', 0, 1),
     (5, 8, '2026-05-24', NULL, 0, 1),
     (6, 10, '2026-05-25', '2026-05-30', 1000, 1),
     (7, 4, '2026-06-01', NULL, 0, 1),
     (7, 9, '2026-06-01', NULL, 0, 1),
     (8, 11, '2026-06-01', '2026-06-04', 0, 1),
-    (9, 12, '2026-06-02', '2026-06-08', 2000, 1);
+    (9, 14, '2026-06-05', NULL, 0, 1),
+    (10, 15, '2026-06-05', NULL, 0, 1),
+    (11, 13, '2026-06-03', '2026-06-05', 0, 1);
 GO
 
 INSERT INTO dbo.PhieuThuTienPhat (MaDG, NgayThu, TongNoLucThu, SoTienThu, ConLai)
 VALUES
-    (2, '2026-05-18', 2000, 0, 2000),
-    (6, '2026-05-31', 1000, 0, 1000),
-    (6, '2026-06-09', 2000, 0, 2000);
+    (2, '2026-05-18', 2000, 1000, 1000);
+GO
+
+UPDATE dg
+SET TongNo =
+    CASE
+        WHEN ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0) < 0 THEN 0
+        ELSE ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0)
+    END
+FROM dbo.DocGia dg
+OUTER APPLY
+(
+    SELECT SUM(ct.TienPhatKyNay) AS TongTienPhat
+    FROM dbo.PhieuMuon pm
+    INNER JOIN dbo.ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+    WHERE pm.MaDG = dg.MaDG
+) f
+OUTER APPLY
+(
+    SELECT SUM(SoTienThu) AS TongTienThu
+    FROM dbo.PhieuThuTienPhat p
+    WHERE p.MaDG = dg.MaDG
+) pt;
 GO

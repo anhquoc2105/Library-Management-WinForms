@@ -55,6 +55,12 @@ namespace QuanLyThuVien.BUS
                 return false;
             }
 
+            if (sach.MaSach < 0)
+            {
+                thongBao = "Mã sách không hợp lệ.";
+                return false;
+            }
+
             if (string.IsNullOrWhiteSpace(sach.TenSach))
             {
                 thongBao = "Vui lòng nhập tên sách.";

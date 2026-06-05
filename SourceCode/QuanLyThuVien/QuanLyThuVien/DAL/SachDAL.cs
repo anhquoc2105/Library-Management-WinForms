@@ -118,68 +118,134 @@ namespace QuanLyThuVien.DAL
 
             const string query = @"
                 DECLARE @KetQua INT = 0;
+                DECLARE @DaBatIdentityInsert BIT = 0;
 
                 BEGIN TRY
                     BEGIN TRANSACTION;
 
-                    ;WITH SachTrung AS
-                    (
-                        SELECT TOP (1) *
-                        FROM Sach WITH (UPDLOCK, HOLDLOCK)
-                        WHERE LOWER(LTRIM(RTRIM(TenSach))) = LOWER(LTRIM(RTRIM(@TenSach)))
-                          AND LOWER(LTRIM(RTRIM(ChuDe))) = LOWER(LTRIM(RTRIM(@ChuDe)))
-                          AND ((MaTheLoai = @MaTheLoai) OR (MaTheLoai IS NULL AND @MaTheLoai IS NULL))
-                          AND LOWER(LTRIM(RTRIM(TenTG))) = LOWER(LTRIM(RTRIM(@TenTG)))
-                          AND ((MaTacGia = @MaTacGia) OR (MaTacGia IS NULL AND @MaTacGia IS NULL))
-                          AND NamXB = @NamXB
-                          AND LOWER(LTRIM(RTRIM(NhaXB))) = LOWER(LTRIM(RTRIM(@NhaXB)))
-                          AND TriGia = @TriGia
-                        ORDER BY MaSach
-                    )
-                    UPDATE SachTrung
-                    SET SoLuongTon = SoLuongTon + @SoLuongTon,
-                        NgayNhap = @NgayNhap,
-                        TinhTrang = CASE
-                            WHEN TinhTrang IN (N'Con', N'Dang muon') THEN N'Con'
-                            ELSE TinhTrang
-                        END;
-
-                    IF @@ROWCOUNT > 0
+                    IF @MaSach > 0
                     BEGIN
-                        SET @KetQua = 2;
+                        IF EXISTS (SELECT 1 FROM Sach WITH (UPDLOCK, HOLDLOCK) WHERE MaSach = @MaSach)
+                        BEGIN
+                            UPDATE Sach
+                            SET TenSach = @TenSach,
+                                ChuDe = @ChuDe,
+                                MaTheLoai = @MaTheLoai,
+                                TenTG = @TenTG,
+                                MaTacGia = @MaTacGia,
+                                NamXB = @NamXB,
+                                NhaXB = @NhaXB,
+                                NgayNhap = @NgayNhap,
+                                TriGia = @TriGia,
+                                TinhTrang = CASE
+                                    WHEN TinhTrang IN (N'Con', N'Dang muon') AND SoLuongTon > 0 THEN N'Con'
+                                    WHEN TinhTrang IN (N'Con', N'Dang muon') AND SoLuongTon = 0 THEN N'Dang muon'
+                                    ELSE TinhTrang
+                                END
+                            WHERE MaSach = @MaSach;
+
+                            SET @KetQua = 3;
+                        END
+                        ELSE
+                        BEGIN
+                            SET IDENTITY_INSERT Sach ON;
+                            SET @DaBatIdentityInsert = 1;
+
+                            INSERT INTO Sach
+                            (
+                                MaSach,
+                                TenSach,
+                                ChuDe,
+                                MaTheLoai,
+                                TenTG,
+                                MaTacGia,
+                                NamXB,
+                                NhaXB,
+                                NgayNhap,
+                                TriGia,
+                                SoLuongTon,
+                                TinhTrang
+                            )
+                            VALUES
+                            (
+                                @MaSach,
+                                @TenSach,
+                                @ChuDe,
+                                @MaTheLoai,
+                                @TenTG,
+                                @MaTacGia,
+                                @NamXB,
+                                @NhaXB,
+                                @NgayNhap,
+                                @TriGia,
+                                @SoLuongTon,
+                                @TinhTrang
+                            );
+
+                            SET IDENTITY_INSERT Sach OFF;
+                            SET @DaBatIdentityInsert = 0;
+                            SET @KetQua = 1;
+                        END
                     END
                     ELSE
                     BEGIN
-                        INSERT INTO Sach
+                        ;WITH SachTrung AS
                         (
-                            TenSach,
-                            ChuDe,
-                            MaTheLoai,
-                            TenTG,
-                            MaTacGia,
-                            NamXB,
-                            NhaXB,
-                            NgayNhap,
-                            TriGia,
-                            SoLuongTon,
-                            TinhTrang
+                            SELECT TOP (1) *
+                            FROM Sach WITH (UPDLOCK, HOLDLOCK)
+                            WHERE LOWER(LTRIM(RTRIM(TenSach))) = LOWER(LTRIM(RTRIM(@TenSach)))
+                              AND ((MaTheLoai = @MaTheLoai) OR (MaTheLoai IS NULL AND @MaTheLoai IS NULL))
+                              AND LOWER(LTRIM(RTRIM(TenTG))) = LOWER(LTRIM(RTRIM(@TenTG)))
+                              AND NamXB = @NamXB
+                              AND LOWER(LTRIM(RTRIM(NhaXB))) = LOWER(LTRIM(RTRIM(@NhaXB)))
+                              AND TriGia = @TriGia
+                            ORDER BY MaSach DESC
                         )
-                        VALUES
-                        (
-                            @TenSach,
-                            @ChuDe,
-                            @MaTheLoai,
-                            @TenTG,
-                            @MaTacGia,
-                            @NamXB,
-                            @NhaXB,
-                            @NgayNhap,
-                            @TriGia,
-                            @SoLuongTon,
-                            @TinhTrang
-                        );
+                        UPDATE SachTrung
+                        SET SoLuongTon = SoLuongTon + @SoLuongTon,
+                            NgayNhap = @NgayNhap,
+                            TinhTrang = CASE
+                                WHEN TinhTrang IN (N'Con', N'Dang muon') THEN N'Con'
+                                ELSE TinhTrang
+                            END;
 
-                        SET @KetQua = 1;
+                        IF @@ROWCOUNT > 0
+                        BEGIN
+                            SET @KetQua = 2;
+                        END
+                        ELSE
+                        BEGIN
+                            INSERT INTO Sach
+                            (
+                                TenSach,
+                                ChuDe,
+                                MaTheLoai,
+                                TenTG,
+                                MaTacGia,
+                                NamXB,
+                                NhaXB,
+                                NgayNhap,
+                                TriGia,
+                                SoLuongTon,
+                                TinhTrang
+                            )
+                            VALUES
+                            (
+                                @TenSach,
+                                @ChuDe,
+                                @MaTheLoai,
+                                @TenTG,
+                                @MaTacGia,
+                                @NamXB,
+                                @NhaXB,
+                                @NgayNhap,
+                                @TriGia,
+                                @SoLuongTon,
+                                @TinhTrang
+                            );
+
+                            SET @KetQua = 1;
+                        END
                     END
 
                     COMMIT TRANSACTION;
@@ -188,6 +254,9 @@ namespace QuanLyThuVien.DAL
                     IF @@TRANCOUNT > 0
                         ROLLBACK TRANSACTION;
 
+                    IF @DaBatIdentityInsert = 1
+                        SET IDENTITY_INSERT Sach OFF;
+
                     THROW;
                 END CATCH
 
@@ -195,6 +264,7 @@ namespace QuanLyThuVien.DAL
 
             int ketQua = Convert.ToInt32(DbHelper.ExecuteScalar(
                 query,
+                new SqlParameter("@MaSach", sach.MaSach),
                 new SqlParameter("@TenSach", sach.TenSach),
                 new SqlParameter("@ChuDe", sach.ChuDe),
                 new SqlParameter("@MaTheLoai", (object)sach.MaTheLoai ?? DBNull.Value),
@@ -210,6 +280,12 @@ namespace QuanLyThuVien.DAL
             if (ketQua == 2)
             {
                 thongBao = "Sách đã tồn tại, số lượng còn đã được cộng thêm.";
+                return true;
+            }
+
+            if (ketQua == 3)
+            {
+                thongBao = "Cập nhật sách theo mã sách thành công.";
                 return true;
             }
 

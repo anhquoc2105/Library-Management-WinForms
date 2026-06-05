@@ -12,6 +12,7 @@ namespace QuanLyThuVien.GUI
         private readonly SachBUS sachBUS = new SachBUS();
         private Label lblTieuDe;
         private Label lblMoTa;
+        private Label lblMaSach;
         private Label lblTenSach;
         private Label lblTheLoai;
         private Label lblTacGia;
@@ -20,6 +21,7 @@ namespace QuanLyThuVien.GUI
         private Label lblNgayNhap;
         private Label lblTriGia;
         private Label lblTacGiaDaChon;
+        private TextBox txtMaSach;
         private TextBox txtTenSach;
         private ComboBox cboTheLoai;
         private TextBox txtTacGia;
@@ -43,7 +45,7 @@ namespace QuanLyThuVien.GUI
         {
             Text = "Tiếp nhận sách mới";
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1340, 780);
+            ClientSize = new Size(1420, 840);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             BackColor = Color.FromArgb(244, 247, 251);
@@ -57,12 +59,13 @@ namespace QuanLyThuVien.GUI
             lblTieuDe.Location = new Point(34, 22);
 
             lblMoTa = new Label();
-            lblMoTa.Text = "Quản lý thông tin sách, thể loại, tác giả và tình trạng hiện có trong thư viện.";
+            lblMoTa.Text = "Quản lý thông tin sách, thể loại, tác giả, ngày nhập và số lượng hiện có trong thư viện.";
             lblMoTa.ForeColor = Color.FromArgb(102, 117, 132);
             lblMoTa.Font = new Font("Segoe UI", 10.5F);
             lblMoTa.AutoSize = true;
             lblMoTa.Location = new Point(38, 62);
 
+            lblMaSach = TaoLabel("Mã sách", 40, 110);
             lblTenSach = TaoLabel("Tên sách", 40, 110);
             lblTheLoai = TaoLabel("Thể loại", 400, 110);
             lblTacGia = TaoLabel("Tác giả", 880, 110);
@@ -74,6 +77,7 @@ namespace QuanLyThuVien.GUI
             lblTacGiaDaChon.ForeColor = Color.FromArgb(102, 117, 132);
             lblTacGiaDaChon.Font = new Font("Segoe UI", 9.25F);
 
+            txtMaSach = TaoTextBox(40, 136, 130);
             txtTenSach = TaoTextBox(40, 136, 300);
 
             cboTheLoai = new ComboBox();
@@ -94,10 +98,10 @@ namespace QuanLyThuVien.GUI
 
             txtTriGia = TaoTextBox(40, 276, 300);
 
-            btnXoa = TaoButton("Xóa", 830, 268, Color.FromArgb(190, 49, 68), Color.White);
-            btnTiepNhan = TaoButton("Tiếp nhận", 950, 268, Color.FromArgb(28, 77, 125), Color.White);
-            btnTaiLai = TaoButton("Tải lại", 1066, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
-            btnDong = TaoButton("Đóng", 1182, 268, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnXoa = TaoButton("Xóa", 870, 282, Color.FromArgb(190, 49, 68), Color.White);
+            btnTiepNhan = TaoButton("Tiếp nhận", 990, 282, Color.FromArgb(28, 77, 125), Color.White);
+            btnTaiLai = TaoButton("Tải lại", 1110, 282, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
+            btnDong = TaoButton("Đóng", 1230, 282, Color.FromArgb(230, 235, 241), Color.FromArgb(50, 60, 70));
 
             btnXoa.Click += btnXoa_Click;
             btnTiepNhan.Click += btnTiepNhan_Click;
@@ -105,8 +109,8 @@ namespace QuanLyThuVien.GUI
             btnDong.Click += (sender, e) => Close();
 
             dgvSach = new DataGridView();
-            dgvSach.Location = new Point(24, 330);
-            dgvSach.Size = new Size(1292, 420);
+            dgvSach.Location = new Point(28, 354);
+            dgvSach.Size = new Size(1364, 466);
             dgvSach.ReadOnly = true;
             dgvSach.AllowUserToAddRows = false;
             dgvSach.AllowUserToDeleteRows = false;
@@ -126,8 +130,11 @@ namespace QuanLyThuVien.GUI
             dgvSach.DefaultCellStyle.Padding = new Padding(2, 4, 2, 4);
             dgvSach.RowTemplate.Height = 40;
 
+            ApDungBoCucNhapMaSach();
+
             Controls.Add(lblTieuDe);
             Controls.Add(lblMoTa);
+            Controls.Add(lblMaSach);
             Controls.Add(lblTenSach);
             Controls.Add(lblTheLoai);
             Controls.Add(lblTacGia);
@@ -136,6 +143,7 @@ namespace QuanLyThuVien.GUI
             Controls.Add(lblNgayNhap);
             Controls.Add(lblTriGia);
             Controls.Add(lblTacGiaDaChon);
+            Controls.Add(txtMaSach);
             Controls.Add(txtTenSach);
             Controls.Add(cboTheLoai);
             Controls.Add(txtTacGia);
@@ -148,6 +156,24 @@ namespace QuanLyThuVien.GUI
             Controls.Add(btnTaiLai);
             Controls.Add(btnDong);
             Controls.Add(dgvSach);
+        }
+
+        private void ApDungBoCucNhapMaSach()
+        {
+            lblMaSach.Location = new Point(40, 110);
+            txtMaSach.Location = new Point(40, 136);
+            txtMaSach.Size = new Size(130, 30);
+
+            lblTenSach.Location = new Point(190, 110);
+            txtTenSach.Location = new Point(190, 136);
+            txtTenSach.Size = new Size(310, 30);
+
+            lblTheLoai.Location = new Point(530, 110);
+            cboTheLoai.Location = new Point(530, 136);
+            cboTheLoai.Size = new Size(300, 26);
+
+            lblTacGia.Location = new Point(880, 110);
+            txtTacGia.Location = new Point(880, 136);
         }
 
         private Label TaoLabel(string text, int x, int y)
@@ -188,8 +214,17 @@ namespace QuanLyThuVien.GUI
 
         private void btnTiepNhan_Click(object sender, EventArgs e)
         {
+            int maSach = 0;
             int namXB;
             decimal triGia;
+
+            if (!string.IsNullOrWhiteSpace(txtMaSach.Text) &&
+                (!int.TryParse(txtMaSach.Text.Trim(), out maSach) || maSach <= 0))
+            {
+                MessageBox.Show("Mã sách không hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMaSach.Focus();
+                return;
+            }
 
             if (!int.TryParse(txtNamXB.Text.Trim(), out namXB))
             {
@@ -223,6 +258,7 @@ namespace QuanLyThuVien.GUI
 
             SachDTO sach = new SachDTO
             {
+                MaSach = maSach,
                 TenSach = txtTenSach.Text.Trim(),
                 ChuDe = theLoai["TenTheLoai"].ToString(),
                 MaTheLoai = Convert.ToInt32(theLoai["MaTheLoai"]),
@@ -314,6 +350,7 @@ namespace QuanLyThuVien.GUI
 
         private void LamMoiNhapLieu()
         {
+            txtMaSach.Clear();
             txtTenSach.Clear();
             if (cboTheLoai.Items.Count > 0) cboTheLoai.SelectedIndex = 0;
             txtTacGia.Clear();
@@ -321,7 +358,7 @@ namespace QuanLyThuVien.GUI
             txtNhaXB.Clear();
             dtpNgayNhap.Value = DateTime.Today;
             txtTriGia.Clear();
-            txtTenSach.Focus();
+            txtMaSach.Focus();
         }
 
         private string ChuanHoaDanhSachTacGia(string tacGia)
@@ -367,12 +404,13 @@ namespace QuanLyThuVien.GUI
                     dgvSach.Columns["TenTG"].HeaderText = "Tác giả";
                     dgvSach.Columns["NamXB"].HeaderText = "Năm XB";
                     dgvSach.Columns["NhaXB"].HeaderText = "Nhà XB";
-                    dgvSach.Columns["NgayNhap"].Visible = false;
+                    dgvSach.Columns["NgayNhap"].HeaderText = "Ngày nhập";
                     dgvSach.Columns["TriGia"].HeaderText = "Trị giá";
-                    dgvSach.Columns["SoLuongTon"].HeaderText = "Số lượng còn";
-                    dgvSach.Columns["TinhTrang"].HeaderText = "Tình trạng";
+                    dgvSach.Columns["SoLuongTon"].HeaderText = "Số lượng";
+                    dgvSach.Columns["TinhTrang"].Visible = false;
 
                     dgvSach.Columns["TriGia"].DefaultCellStyle.Format = "N0";
+                    dgvSach.Columns["NgayNhap"].DefaultCellStyle.Format = "dd/MM/yyyy";
 
                     dgvSach.Columns["MaSachHienThi"].FillWeight = 70;
                     dgvSach.Columns["TenSach"].FillWeight = 190;
@@ -380,9 +418,9 @@ namespace QuanLyThuVien.GUI
                     dgvSach.Columns["TenTG"].FillWeight = 105;
                     dgvSach.Columns["NamXB"].FillWeight = 75;
                     dgvSach.Columns["NhaXB"].FillWeight = 140;
+                    dgvSach.Columns["NgayNhap"].FillWeight = 95;
                     dgvSach.Columns["TriGia"].FillWeight = 90;
                     dgvSach.Columns["SoLuongTon"].FillWeight = 105;
-                    dgvSach.Columns["TinhTrang"].FillWeight = 105;
                 }
 
                 dgvSach.ClearSelection();

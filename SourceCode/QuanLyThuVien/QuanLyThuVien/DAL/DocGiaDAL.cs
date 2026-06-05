@@ -163,7 +163,7 @@ namespace QuanLyThuVien.DAL
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        thongBao = "Khong the lap the doc gia. Chi tiet: " + ex.Message;
+                        thongBao = "Không thể lập thẻ độc giả. Chi tiết: " + ex.Message;
                         return false;
                     }
                 }
