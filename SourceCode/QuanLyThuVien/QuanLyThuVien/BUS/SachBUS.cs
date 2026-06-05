@@ -30,9 +30,9 @@ namespace QuanLyThuVien.BUS
             return sachDAL.LayDanhSachTacGia();
         }
 
-        public DataTable TimKiemSach(string maSach, string tenSach, string theLoai, string tacGia)
+        public DataTable TimKiemSach(string maSach, string tenSach, string theLoai, string tacGia, string nhaXB, string namXB)
         {
-            return sachDAL.TimKiemSach(maSach, tenSach, theLoai, tacGia);
+            return sachDAL.TimKiemSach(maSach, tenSach, theLoai, tacGia, nhaXB, namXB);
         }
 
         public bool XoaSach(int maSach, out string thongBao)
@@ -58,6 +58,24 @@ namespace QuanLyThuVien.BUS
             if (string.IsNullOrWhiteSpace(sach.TenSach))
             {
                 thongBao = "Vui lòng nhập tên sách.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(sach.TenTG))
+            {
+                thongBao = "Vui lòng chọn ít nhất một tác giả.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(sach.NhaXB))
+            {
+                thongBao = "Vui lòng nhập nhà xuất bản.";
+                return false;
+            }
+
+            if (sach.TriGia < 0)
+            {
+                thongBao = "Trị giá không được âm.";
                 return false;
             }
 

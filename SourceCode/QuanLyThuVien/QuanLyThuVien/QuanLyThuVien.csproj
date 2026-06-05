@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="BUS\TaiKhoanBUS.cs" />
     <Compile Include="BUS\BaoCaoBUS.cs" />
+    <Compile Include="BUS\LoaiDocGiaBUS.cs" />
     <Compile Include="BUS\PhieuMuonBUS.cs" />
     <Compile Include="BUS\PhieuThuTienPhatBUS.cs" />
     <Compile Include="BUS\SachBUS.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="DAL\TaiKhoanDAL.cs" />
     <Compile Include="DAL\BaoCaoDAL.cs" />
     <Compile Include="DAL\DocGiaDAL.cs" />
+    <Compile Include="DAL\LoaiDocGiaDAL.cs" />
     <Compile Include="DAL\PhieuMuonDAL.cs" />
     <Compile Include="DAL\PhieuThuTienPhatDAL.cs" />
     <Compile Include="DAL\SachDAL.cs" />

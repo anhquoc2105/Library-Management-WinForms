@@ -124,6 +124,50 @@ namespace QuanLyThuVien.DAL
                 command.ExecuteNonQuery();
             }
 
+            const string dongBoTienPhatQuery = @"
+                UPDATE PhieuMuon
+                SET TienPhatKyNay =
+                (
+                    SELECT ISNULL(SUM(TienPhatKyNay), 0)
+                    FROM ChiTietPM
+                    WHERE MaPhieu = @MaPhieu
+                )
+                WHERE MaPhieu = @MaPhieu;
+
+                ;WITH AffectedDocGia AS
+                (
+                    SELECT MaDG
+                    FROM PhieuMuon
+                    WHERE MaPhieu = @MaPhieu
+                )
+                UPDATE dg
+                SET TongNo =
+                    CASE
+                        WHEN ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0) < 0 THEN 0
+                        ELSE ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0)
+                    END
+                FROM DocGia dg
+                INNER JOIN AffectedDocGia adg ON dg.MaDG = adg.MaDG
+                OUTER APPLY
+                (
+                    SELECT SUM(ct.TienPhatKyNay) AS TongTienPhat
+                    FROM PhieuMuon pm
+                    INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                    WHERE pm.MaDG = dg.MaDG
+                ) f
+                OUTER APPLY
+                (
+                    SELECT SUM(SoTienThu) AS TongTienThu
+                    FROM PhieuThuTienPhat p
+                    WHERE p.MaDG = dg.MaDG
+                ) pt;";
+
+            using (SqlCommand command = new SqlCommand(dongBoTienPhatQuery, connection, transaction))
+            {
+                command.Parameters.AddWithValue("@MaPhieu", maPhieu);
+                command.ExecuteNonQuery();
+            }
+
             thongBao = "Trả sách thành công. Tiền phạt kỳ này: " + tienPhatKyNay.ToString("N0") + "đ";
             return true;
         }
@@ -136,6 +180,7 @@ namespace QuanLyThuVien.DAL
                     SoNgayMuonToiDa,
                     TienPhat
                 FROM ThamSo
+                WHERE MaTheLoai IS NULL
                 ORDER BY MaThamSo";
 
             using (SqlCommand command = new SqlCommand(query, connection, transaction))
@@ -232,6 +277,27 @@ namespace QuanLyThuVien.DAL
                             if (soSachDangMuon >= soSachMuonToiDa)
                             {
                                 thongBao = "Độc giả đã mượn tối đa " + soSachMuonToiDa + " quyển.";
+                                transaction.Rollback();
+                                return false;
+                            }
+                        }
+
+                        const string checkSachTrungQuery = @"
+                            SELECT COUNT(*)
+                            FROM PhieuMuon pm
+                            INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                            WHERE pm.MaDG = @MaDG
+                              AND ct.MaSach = @MaSach
+                              AND ct.NgayTra IS NULL";
+
+                        using (SqlCommand command = new SqlCommand(checkSachTrungQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@MaDG", maDG);
+                            command.Parameters.AddWithValue("@MaSach", maSach);
+                            int soLanDangMuonSachNay = Convert.ToInt32(command.ExecuteScalar());
+                            if (soLanDangMuonSachNay > 0)
+                            {
+                                thongBao = "Độc giả đang mượn quyển sách này, không thể mượn trùng.";
                                 transaction.Rollback();
                                 return false;
                             }
@@ -384,7 +450,8 @@ namespace QuanLyThuVien.DAL
                              (
                                  SELECT TOP 1 TienPhat
                                  FROM ThamSo
-                                 ORDER BY MaThamSo DESC
+                                 WHERE MaTheLoai IS NULL
+                                 ORDER BY MaThamSo
                              )
                         ELSE 0
                     END AS TienPhatDuKien,

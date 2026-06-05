@@ -71,7 +71,7 @@ namespace QuanLyThuVien.DAL
             return DbHelper.ExecuteQuery("SELECT MaTacGia, TenTacGia FROM TacGia ORDER BY TenTacGia");
         }
 
-        public DataTable TimKiemSach(string maSach, string tenSach, string theLoai, string tacGia)
+        public DataTable TimKiemSach(string maSach, string tenSach, string theLoai, string tacGia, string nhaXB, string namXB)
         {
             const string query = @"
                 SELECT
@@ -98,6 +98,8 @@ namespace QuanLyThuVien.DAL
                   AND (@TenSach = '' OR s.TenSach LIKE N'%' + @TenSach + N'%')
                   AND (@TheLoai = '' OR tl.TenTheLoai LIKE N'%' + @TheLoai + N'%')
                   AND (@TacGia = '' OR s.TenTG LIKE N'%' + @TacGia + N'%')
+                  AND (@NhaXB = '' OR s.NhaXB LIKE N'%' + @NhaXB + N'%')
+                  AND (@NamXB = '' OR CAST(s.NamXB AS NVARCHAR(20)) LIKE N'%' + @NamXB + N'%')
                 ORDER BY s.MaSach";
 
             return DbHelper.ExecuteQuery(
@@ -105,7 +107,9 @@ namespace QuanLyThuVien.DAL
                 new SqlParameter("@MaSach", maSach ?? string.Empty),
                 new SqlParameter("@TenSach", tenSach ?? string.Empty),
                 new SqlParameter("@TheLoai", theLoai ?? string.Empty),
-                new SqlParameter("@TacGia", tacGia ?? string.Empty));
+                new SqlParameter("@TacGia", tacGia ?? string.Empty),
+                new SqlParameter("@NhaXB", nhaXB ?? string.Empty),
+                new SqlParameter("@NamXB", namXB ?? string.Empty));
         }
 
         public bool ThemSach(SachDTO sach, out string thongBao)
@@ -134,6 +138,7 @@ namespace QuanLyThuVien.DAL
                     )
                     UPDATE SachTrung
                     SET SoLuongTon = SoLuongTon + @SoLuongTon,
+                        NgayNhap = @NgayNhap,
                         TinhTrang = CASE
                             WHEN TinhTrang IN (N'Con', N'Dang muon') THEN N'Con'
                             ELSE TinhTrang

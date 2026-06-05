@@ -54,6 +54,28 @@ BEGIN
         SELECT 1
         FROM inserted i
         INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+        WHERE EXISTS
+        (
+            SELECT 1
+            FROM dbo.PhieuMuon pm2
+            INNER JOIN dbo.ChiTietPM ct2 ON pm2.MaPhieu = ct2.MaPhieu
+            WHERE pm2.MaDG = pm.MaDG
+              AND ct2.MaSach = i.MaSach
+              AND ct2.NgayTra IS NULL
+              AND ct2.MaCTPM <> i.MaCTPM
+        )
+    )
+    BEGIN
+        RAISERROR(N'Doc gia dang muon quyen sach nay, khong the muon trung.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
         GROUP BY pm.MaDG
         HAVING
         (

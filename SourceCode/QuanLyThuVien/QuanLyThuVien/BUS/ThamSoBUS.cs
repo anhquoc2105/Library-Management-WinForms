@@ -27,6 +27,7 @@ namespace QuanLyThuVien.BUS
             int thoiGianXB,
             int soSachMuonToiDa,
             int soNgayMuonToiDa,
+            decimal tienPhat,
             out string thongBao)
         {
             if (soTuoiToiThieu <= 0 || soTuoiToiDa < soTuoiToiThieu)
@@ -35,7 +36,7 @@ namespace QuanLyThuVien.BUS
                 return false;
             }
 
-            if (giaTriThe <= 0 || thoiGianXB < 0 || soSachMuonToiDa <= 0 || soNgayMuonToiDa <= 0)
+            if (giaTriThe <= 0 || thoiGianXB < 0 || soSachMuonToiDa <= 0 || soNgayMuonToiDa <= 0 || tienPhat < 0)
             {
                 thongBao = "Tham số nhập vào không hợp lệ.";
                 return false;
@@ -48,7 +49,8 @@ namespace QuanLyThuVien.BUS
                     SoTuoiDGToiDa = @SoTuoiDGToiDa,
                     ThoiGianXB = @ThoiGianXB,
                     SoSachMuonToiDa = @SoSachMuonToiDa,
-                    SoNgayMuonToiDa = @SoNgayMuonToiDa
+                    SoNgayMuonToiDa = @SoNgayMuonToiDa,
+                    TienPhat = @TienPhat
                 WHERE MaThamSo = @MaThamSo";
 
             int rows = DbHelper.ExecuteNonQuery(
@@ -59,6 +61,7 @@ namespace QuanLyThuVien.BUS
                 new SqlParameter("@ThoiGianXB", thoiGianXB),
                 new SqlParameter("@SoSachMuonToiDa", soSachMuonToiDa),
                 new SqlParameter("@SoNgayMuonToiDa", soNgayMuonToiDa),
+                new SqlParameter("@TienPhat", tienPhat),
                 new SqlParameter("@MaThamSo", maThamSo));
 
             thongBao = rows > 0 ? "Cập nhật tham số thành công." : "Không thể cập nhật tham số.";

@@ -71,6 +71,10 @@ IF OBJECT_ID(N'dbo.TheLoai', N'U') IS NOT NULL
     DROP TABLE dbo.TheLoai;
 GO
 
+IF OBJECT_ID(N'dbo.LoaiDocGia', N'U') IS NOT NULL
+    DROP TABLE dbo.LoaiDocGia;
+GO
+
 IF OBJECT_ID(N'dbo.ThamSo', N'U') IS NOT NULL
     DROP TABLE dbo.ThamSo;
 GO
@@ -112,6 +116,14 @@ CREATE TABLE dbo.TacGia
 );
 GO
 
+CREATE TABLE dbo.LoaiDocGia
+(
+    MaLoaiDG INT IDENTITY(1,1) PRIMARY KEY,
+    TenLoaiDG NVARCHAR(50) NOT NULL,
+    CONSTRAINT UQ_LoaiDocGia_TenLoaiDG UNIQUE (TenLoaiDG)
+);
+GO
+
 CREATE TABLE dbo.TaiKhoan
 (
     MaTaiKhoan INT IDENTITY(1,1) PRIMARY KEY,
@@ -137,7 +149,6 @@ CREATE TABLE dbo.DocGia
         FOREIGN KEY (MaTaiKhoan) REFERENCES dbo.TaiKhoan(MaTaiKhoan),
     CONSTRAINT UQ_DocGia_EmailDG UNIQUE (EmailDG),
     CONSTRAINT UQ_DocGia_MaTaiKhoan UNIQUE (MaTaiKhoan),
-    CONSTRAINT CK_DocGia_LoaiDG CHECK (LoaiDG IN (N'X', N'Y')),
     CONSTRAINT CK_DocGia_TongNo CHECK (TongNo >= 0)
 );
 GO
@@ -293,6 +304,28 @@ BEGIN
     )
     BEGIN
         RAISERROR(N'Độc giả đang có sách mượn quá hạn chưa trả.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.PhieuMuon pm ON i.MaPhieu = pm.MaPhieu
+        WHERE EXISTS
+        (
+            SELECT 1
+            FROM dbo.PhieuMuon pm2
+            INNER JOIN dbo.ChiTietPM ct2 ON pm2.MaPhieu = ct2.MaPhieu
+            WHERE pm2.MaDG = pm.MaDG
+              AND ct2.MaSach = i.MaSach
+              AND ct2.NgayTra IS NULL
+              AND ct2.MaCTPM <> i.MaCTPM
+        )
+    )
+    BEGIN
+        RAISERROR(N'Độc giả đang mượn quyển sách này, không thể mượn trùng.', 16, 1);
         ROLLBACK TRANSACTION;
         RETURN;
     END
@@ -499,24 +532,6 @@ BEGIN
         WHERE d.NgayTra IS NULL
           AND i.NgayTra IS NOT NULL
     )
-    UPDATE pm
-    SET TienPhatKyNay =
-        CASE
-            WHEN rp.NgayTra > rp.NgayPhaiTra
-            THEN DATEDIFF(DAY, rp.NgayPhaiTra, rp.NgayTra) * @TienPhat
-            ELSE 0
-        END
-    FROM dbo.PhieuMuon pm
-    INNER JOIN ReturnedPhieu rp ON pm.MaPhieu = rp.MaPhieu;
-
-    ;WITH ReturnedPhieu AS
-    (
-        SELECT i.MaPhieu, i.MaDG, i.NgayTra, i.NgayPhaiTra
-        FROM inserted i
-        INNER JOIN deleted d ON i.MaPhieu = d.MaPhieu
-        WHERE d.NgayTra IS NULL
-          AND i.NgayTra IS NOT NULL
-    )
     UPDATE ct
     SET NgayTra = rp.NgayTra,
         TienPhatKyNay =
@@ -528,6 +543,23 @@ BEGIN
     FROM dbo.ChiTietPM ct
     INNER JOIN ReturnedPhieu rp ON ct.MaPhieu = rp.MaPhieu
     WHERE ct.NgayTra IS NULL;
+
+    ;WITH ChangedPhieu AS
+    (
+        SELECT MaPhieu FROM inserted
+        UNION
+        SELECT MaPhieu FROM deleted
+    )
+    UPDATE pm
+    SET TienPhatKyNay = ISNULL(ct.TongTienPhatKyNay, 0)
+    FROM dbo.PhieuMuon pm
+    INNER JOIN ChangedPhieu cp ON pm.MaPhieu = cp.MaPhieu
+    OUTER APPLY
+    (
+        SELECT SUM(TienPhatKyNay) AS TongTienPhatKyNay
+        FROM dbo.ChiTietPM c
+        WHERE c.MaPhieu = pm.MaPhieu
+    ) ct;
 
     ;WITH AffectedDocGia AS
     (
@@ -547,6 +579,7 @@ BEGIN
     (
         SELECT SUM(TienPhatKyNay) AS TongTienPhat
         FROM dbo.PhieuMuon pm
+        INNER JOIN dbo.ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
         WHERE pm.MaDG = dg.MaDG
     ) f
     OUTER APPLY
@@ -611,6 +644,7 @@ BEGIN
     (
         SELECT SUM(TienPhatKyNay) AS TongTienPhat
         FROM dbo.PhieuMuon pm
+        INNER JOIN dbo.ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
         WHERE pm.MaDG = dg.MaDG
     ) f
     OUTER APPLY
@@ -657,6 +691,12 @@ INSERT INTO dbo.TacGia (TenTacGia)
 SELECT N'Tác giả ' + RIGHT('000' + CAST(N AS NVARCHAR(3)), 3)
 FROM Numbers
 OPTION (MAXRECURSION 100);
+GO
+
+INSERT INTO dbo.LoaiDocGia (TenLoaiDG)
+VALUES
+    (N'X'),
+    (N'Y');
 GO
 
 INSERT INTO dbo.TaiKhoan (TenDangNhap, MatKhau)

@@ -22,7 +22,12 @@ namespace QuanLyThuVien.DAL
                     NgLapThe,
                     NgayHetHan,
                     TongNo,
-                    MaTaiKhoan
+                    MaTaiKhoan,
+                    CASE
+                        WHEN NgayHetHan IS NULL THEN N'Chưa có hạn thẻ'
+                        WHEN NgayHetHan < CAST(GETDATE() AS DATE) THEN N'Hết hạn'
+                        ELSE N'Còn hạn'
+                    END AS TrangThaiThe
                 FROM DocGia
                 ORDER BY MaDG";
 
@@ -163,6 +168,68 @@ namespace QuanLyThuVien.DAL
                     }
                 }
             }
+        }
+
+        public bool CapNhatDocGia(DocGiaDTO docGia, out string thongBao)
+        {
+            const string checkEmailQuery = @"
+                SELECT COUNT(*)
+                FROM DocGia
+                WHERE EmailDG = @EmailDG
+                  AND MaDG <> @MaDG";
+
+            object emailCount = DbHelper.ExecuteScalar(
+                checkEmailQuery,
+                new SqlParameter(
+                    "@EmailDG",
+                    string.IsNullOrWhiteSpace(docGia.EmailDG) ? (object)DBNull.Value : docGia.EmailDG),
+                new SqlParameter("@MaDG", docGia.MaDG));
+
+            if (emailCount != null && Convert.ToInt32(emailCount) > 0)
+            {
+                thongBao = "Email đã tồn tại.";
+                return false;
+            }
+
+            const string updateQuery = @"
+                UPDATE DocGia
+                SET TenDG = @TenDG,
+                    LoaiDG = @LoaiDG,
+                    NgaySinhDG = @NgaySinhDG,
+                    DiaChiDG = @DiaChiDG,
+                    EmailDG = @EmailDG,
+                    NgLapThe = @NgLapThe
+                WHERE MaDG = @MaDG";
+
+            int rows = DbHelper.ExecuteNonQuery(
+                updateQuery,
+                new SqlParameter("@TenDG", docGia.TenDG),
+                new SqlParameter("@LoaiDG", docGia.LoaiDG),
+                new SqlParameter("@NgaySinhDG", docGia.NgaySinhDG),
+                new SqlParameter(
+                    "@DiaChiDG",
+                    string.IsNullOrWhiteSpace(docGia.DiaChiDG) ? (object)DBNull.Value : docGia.DiaChiDG),
+                new SqlParameter(
+                    "@EmailDG",
+                    string.IsNullOrWhiteSpace(docGia.EmailDG) ? (object)DBNull.Value : docGia.EmailDG),
+                new SqlParameter("@NgLapThe", docGia.NgLapThe),
+                new SqlParameter("@MaDG", docGia.MaDG));
+
+            thongBao = rows > 0 ? "Cập nhật thẻ độc giả thành công." : "Không tìm thấy độc giả cần cập nhật.";
+            return rows > 0;
+        }
+
+        public bool GiaHanThe(int maDG, out string thongBao)
+        {
+            const string query = @"
+                UPDATE DocGia
+                SET NgLapThe = CAST(GETDATE() AS DATE)
+                WHERE MaDG = @MaDG";
+
+            int rows = DbHelper.ExecuteNonQuery(query, new SqlParameter("@MaDG", maDG));
+
+            thongBao = rows > 0 ? "Gia hạn thẻ độc giả thành công." : "Không tìm thấy độc giả cần gia hạn.";
+            return rows > 0;
         }
 
         public bool XoaDocGia(int maDG, out string thongBao)

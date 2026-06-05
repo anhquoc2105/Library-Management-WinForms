@@ -398,7 +398,7 @@ namespace QuanLyThuVien.GUI
             }
             if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].HeaderText = "Số lượng";
             if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].HeaderText = "Tình trạng";
-            if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].HeaderText = "Ngày nhập";
+            if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].Visible = false;
 
             if (dgvSachCon.Columns["MaSachHienThi"] != null) dgvSachCon.Columns["MaSachHienThi"].FillWeight = 75;
             if (dgvSachCon.Columns["TenSach"] != null) dgvSachCon.Columns["TenSach"].FillWeight = 210;
@@ -406,7 +406,6 @@ namespace QuanLyThuVien.GUI
             if (dgvSachCon.Columns["TenTG"] != null) dgvSachCon.Columns["TenTG"].FillWeight = 105;
             if (dgvSachCon.Columns["NamXB"] != null) dgvSachCon.Columns["NamXB"].FillWeight = 80;
             if (dgvSachCon.Columns["NhaXB"] != null) dgvSachCon.Columns["NhaXB"].FillWeight = 140;
-            if (dgvSachCon.Columns["NgayNhap"] != null) dgvSachCon.Columns["NgayNhap"].FillWeight = 105;
             if (dgvSachCon.Columns["TriGia"] != null) dgvSachCon.Columns["TriGia"].FillWeight = 90;
             if (dgvSachCon.Columns["SoLuongTon"] != null) dgvSachCon.Columns["SoLuongTon"].FillWeight = 95;
             if (dgvSachCon.Columns["TinhTrang"] != null) dgvSachCon.Columns["TinhTrang"].FillWeight = 100;

@@ -19,9 +19,10 @@ namespace QuanLyThuVien.GUI
         private Label lblNhaXB;
         private Label lblNgayNhap;
         private Label lblTriGia;
+        private Label lblTacGiaDaChon;
         private TextBox txtTenSach;
         private ComboBox cboTheLoai;
-        private ComboBox cboTacGia;
+        private TextBox txtTacGia;
         private TextBox txtNamXB;
         private TextBox txtNhaXB;
         private DateTimePicker dtpNgayNhap;
@@ -69,6 +70,9 @@ namespace QuanLyThuVien.GUI
             lblNhaXB = TaoLabel("Nhà xuất bản", 400, 180);
             lblNgayNhap = TaoLabel("Ngày nhập", 880, 180);
             lblTriGia = TaoLabel("Trị giá", 40, 250);
+            lblTacGiaDaChon = TaoLabel("Nhập một hoặc nhiều tác giả, cách nhau bằng dấu phẩy.", 880, 166);
+            lblTacGiaDaChon.ForeColor = Color.FromArgb(102, 117, 132);
+            lblTacGiaDaChon.Font = new Font("Segoe UI", 9.25F);
 
             txtTenSach = TaoTextBox(40, 136, 300);
 
@@ -77,10 +81,7 @@ namespace QuanLyThuVien.GUI
             cboTheLoai.Location = new Point(400, 136);
             cboTheLoai.Size = new Size(300, 26);
 
-            cboTacGia = new ComboBox();
-            cboTacGia.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboTacGia.Location = new Point(880, 136);
-            cboTacGia.Size = new Size(400, 26);
+            txtTacGia = TaoTextBox(880, 136, 400);
 
             txtNamXB = TaoTextBox(40, 206, 300);
             txtNhaXB = TaoTextBox(400, 206, 300);
@@ -134,9 +135,10 @@ namespace QuanLyThuVien.GUI
             Controls.Add(lblNhaXB);
             Controls.Add(lblNgayNhap);
             Controls.Add(lblTriGia);
+            Controls.Add(lblTacGiaDaChon);
             Controls.Add(txtTenSach);
             Controls.Add(cboTheLoai);
-            Controls.Add(cboTacGia);
+            Controls.Add(txtTacGia);
             Controls.Add(txtNamXB);
             Controls.Add(txtNhaXB);
             Controls.Add(dtpNgayNhap);
@@ -204,15 +206,28 @@ namespace QuanLyThuVien.GUI
             }
 
             DataRowView theLoai = cboTheLoai.SelectedItem as DataRowView;
-            DataRowView tacGia = cboTacGia.SelectedItem as DataRowView;
+            string tenTacGia = ChuanHoaDanhSachTacGia(txtTacGia.Text);
+
+            if (theLoai == null)
+            {
+                MessageBox.Show("Vui lòng chọn thể loại.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(tenTacGia))
+            {
+                MessageBox.Show("Vui lòng nhập ít nhất một tác giả.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTacGia.Focus();
+                return;
+            }
 
             SachDTO sach = new SachDTO
             {
                 TenSach = txtTenSach.Text.Trim(),
                 ChuDe = theLoai["TenTheLoai"].ToString(),
                 MaTheLoai = Convert.ToInt32(theLoai["MaTheLoai"]),
-                TenTG = tacGia["TenTacGia"].ToString(),
-                MaTacGia = Convert.ToInt32(tacGia["MaTacGia"]),
+                TenTG = tenTacGia,
+                MaTacGia = null,
                 NamXB = namXB,
                 NhaXB = txtNhaXB.Text.Trim(),
                 NgayNhap = dtpNgayNhap.Value.Date,
@@ -294,10 +309,6 @@ namespace QuanLyThuVien.GUI
             cboTheLoai.DisplayMember = "TenTheLoai";
             cboTheLoai.ValueMember = "MaTheLoai";
 
-            cboTacGia.DataSource = sachBUS.LayDanhSachTacGia();
-            cboTacGia.DisplayMember = "TenTacGia";
-            cboTacGia.ValueMember = "MaTacGia";
-
             TaiDanhSachSach();
         }
 
@@ -305,12 +316,28 @@ namespace QuanLyThuVien.GUI
         {
             txtTenSach.Clear();
             if (cboTheLoai.Items.Count > 0) cboTheLoai.SelectedIndex = 0;
-            if (cboTacGia.Items.Count > 0) cboTacGia.SelectedIndex = 0;
+            txtTacGia.Clear();
             txtNamXB.Clear();
             txtNhaXB.Clear();
             dtpNgayNhap.Value = DateTime.Today;
             txtTriGia.Clear();
             txtTenSach.Focus();
+        }
+
+        private string ChuanHoaDanhSachTacGia(string tacGia)
+        {
+            if (string.IsNullOrWhiteSpace(tacGia))
+            {
+                return string.Empty;
+            }
+
+            string[] parts = tacGia.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                parts[i] = parts[i].Trim();
+            }
+
+            return string.Join(", ", parts);
         }
 
         private void TaiDanhSachSach()
@@ -340,7 +367,7 @@ namespace QuanLyThuVien.GUI
                     dgvSach.Columns["TenTG"].HeaderText = "Tác giả";
                     dgvSach.Columns["NamXB"].HeaderText = "Năm XB";
                     dgvSach.Columns["NhaXB"].HeaderText = "Nhà XB";
-                    dgvSach.Columns["NgayNhap"].HeaderText = "Ngày nhập";
+                    dgvSach.Columns["NgayNhap"].Visible = false;
                     dgvSach.Columns["TriGia"].HeaderText = "Trị giá";
                     dgvSach.Columns["SoLuongTon"].HeaderText = "Số lượng còn";
                     dgvSach.Columns["TinhTrang"].HeaderText = "Tình trạng";
@@ -353,7 +380,6 @@ namespace QuanLyThuVien.GUI
                     dgvSach.Columns["TenTG"].FillWeight = 105;
                     dgvSach.Columns["NamXB"].FillWeight = 75;
                     dgvSach.Columns["NhaXB"].FillWeight = 140;
-                    dgvSach.Columns["NgayNhap"].FillWeight = 105;
                     dgvSach.Columns["TriGia"].FillWeight = 90;
                     dgvSach.Columns["SoLuongTon"].FillWeight = 105;
                     dgvSach.Columns["TinhTrang"].FillWeight = 105;

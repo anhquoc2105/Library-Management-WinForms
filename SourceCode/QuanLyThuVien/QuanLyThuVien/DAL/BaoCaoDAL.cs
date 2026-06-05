@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using QuanLyThuVien.UTILS;
@@ -6,41 +7,24 @@ namespace QuanLyThuVien.DAL
 {
     public class BaoCaoDAL
     {
-        public DataTable LayDanhSachThangBaoCao()
-        {
-            const string query = @"
-                SELECT DISTINCT
-                    YEAR(NgayMuon) AS Nam,
-                    MONTH(NgayMuon) AS Thang,
-                    RIGHT('0' + CAST(MONTH(NgayMuon) AS VARCHAR(2)), 2)
-                        + '/' + CAST(YEAR(NgayMuon) AS VARCHAR(4)) AS ThangNam
-                FROM PhieuMuon
-                ORDER BY Nam DESC, Thang DESC";
-
-            return DbHelper.ExecuteQuery(query);
-        }
-
-        public DataTable LayBaoCaoMuonTheoTheLoai(int nam, int thang)
+        public DataTable LayBaoCaoMuonTheoTheLoai(DateTime ngayBaoCao)
         {
             const string query = @"
                 WITH BaoCaoMuonTheoTheLoai AS
                 (
                     SELECT
-                        @Thang AS Thang,
-                        @Nam AS Nam,
+                        @NgayBaoCao AS NgayBaoCao,
                         tl.TenTheLoai AS TenTheLoai,
                         COUNT(ct.MaCTPM) AS SoLuotMuon
                     FROM PhieuMuon pm
                     INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                     INNER JOIN Sach s ON ct.MaSach = s.MaSach
                     LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
-                    WHERE YEAR(pm.NgayMuon) = @Nam
-                      AND MONTH(pm.NgayMuon) = @Thang
+                    WHERE CAST(pm.NgayMuon AS DATE) = @NgayBaoCao
                     GROUP BY tl.TenTheLoai
                 )
                 SELECT
-                    Nam,
-                    Thang,
+                    NgayBaoCao,
                     TenTheLoai,
                     SoLuotMuon,
                     CAST(
@@ -53,11 +37,10 @@ namespace QuanLyThuVien.DAL
 
             return DbHelper.ExecuteQuery(
                 query,
-                new SqlParameter("@Nam", nam),
-                new SqlParameter("@Thang", thang));
+                new SqlParameter("@NgayBaoCao", ngayBaoCao.Date));
         }
 
-        public DataTable LayBaoCaoTraTre(int nam, int thang)
+        public DataTable LayBaoCaoTraTre(DateTime ngayTra)
         {
             const string query = @"
                 SELECT
@@ -70,14 +53,12 @@ namespace QuanLyThuVien.DAL
                 INNER JOIN Sach s ON ct.MaSach = s.MaSach
                 WHERE ct.NgayTra IS NOT NULL
                   AND ct.NgayTra > pm.NgayPhaiTra
-                  AND YEAR(pm.NgayMuon) = @Nam
-                  AND MONTH(pm.NgayMuon) = @Thang
-                ORDER BY ct.NgayTra DESC";
+                  AND CAST(ct.NgayTra AS DATE) = @NgayTra
+                ORDER BY s.TenSach";
 
             return DbHelper.ExecuteQuery(
                 query,
-                new SqlParameter("@Nam", nam),
-                new SqlParameter("@Thang", thang));
+                new SqlParameter("@NgayTra", ngayTra.Date));
         }
     }
 }

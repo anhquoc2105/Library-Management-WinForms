@@ -68,7 +68,7 @@ namespace QuanLyThuVien.GUI
             pnlContainer.BorderStyle = BorderStyle.FixedSingle;
 
             btnQuanLySach = TaoButton("Tiếp nhận sách");
-            btnQuanLyDocGia = TaoButton("Lập thẻ độc giả");
+            btnQuanLyDocGia = TaoButton("Quản lý thẻ độc giả");
             btnMuonSach = TaoButton("Cho mượn sách");
             btnTraSach = TaoButton("Nhận trả sách");
             btnTraCuuSach = TaoButton("Tra cứu sách");

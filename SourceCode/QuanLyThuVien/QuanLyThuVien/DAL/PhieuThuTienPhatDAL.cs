@@ -73,6 +73,35 @@ namespace QuanLyThuVien.DAL
                             command.ExecuteNonQuery();
                         }
 
+                        const string updateTongNoQuery = @"
+                            UPDATE dg
+                            SET TongNo =
+                                CASE
+                                    WHEN ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0) < 0 THEN 0
+                                    ELSE ISNULL(f.TongTienPhat, 0) - ISNULL(pt.TongTienThu, 0)
+                                END
+                            FROM DocGia dg
+                            OUTER APPLY
+                            (
+                                SELECT SUM(ct.TienPhatKyNay) AS TongTienPhat
+                                FROM PhieuMuon pm
+                                INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
+                                WHERE pm.MaDG = dg.MaDG
+                            ) f
+                            OUTER APPLY
+                            (
+                                SELECT SUM(SoTienThu) AS TongTienThu
+                                FROM PhieuThuTienPhat p
+                                WHERE p.MaDG = dg.MaDG
+                            ) pt
+                            WHERE dg.MaDG = @MaDG";
+
+                        using (SqlCommand command = new SqlCommand(updateTongNoQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@MaDG", maDG);
+                            command.ExecuteNonQuery();
+                        }
+
                         transaction.Commit();
                         thongBao = "Lập phiếu thu tiền phạt thành công.";
                         return true;

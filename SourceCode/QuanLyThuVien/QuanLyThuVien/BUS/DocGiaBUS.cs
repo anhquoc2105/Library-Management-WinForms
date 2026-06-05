@@ -38,6 +38,44 @@ namespace QuanLyThuVien.BUS
 
         public bool ThemDocGia(DocGiaDTO docGia, out string thongBao)
         {
+            if (!KiemTraThongTinDocGia(docGia, out thongBao))
+            {
+                return false;
+            }
+
+            docGia.TongNo = 0;
+            return docGiaDAL.ThemDocGia(docGia, out thongBao);
+        }
+
+        public bool CapNhatDocGia(DocGiaDTO docGia, out string thongBao)
+        {
+            if (docGia.MaDG <= 0)
+            {
+                thongBao = "Vui lòng chọn độc giả cần cập nhật.";
+                return false;
+            }
+
+            if (!KiemTraThongTinDocGia(docGia, out thongBao))
+            {
+                return false;
+            }
+
+            return docGiaDAL.CapNhatDocGia(docGia, out thongBao);
+        }
+
+        public bool GiaHanThe(int maDG, out string thongBao)
+        {
+            if (maDG <= 0)
+            {
+                thongBao = "Vui lòng chọn độc giả cần gia hạn thẻ.";
+                return false;
+            }
+
+            return docGiaDAL.GiaHanThe(maDG, out thongBao);
+        }
+
+        private bool KiemTraThongTinDocGia(DocGiaDTO docGia, out string thongBao)
+        {
             DataRow thamSo = thamSoDAL.LayThamSoHienTai();
             if (thamSo == null)
             {
@@ -51,9 +89,9 @@ namespace QuanLyThuVien.BUS
                 return false;
             }
 
-            if (docGia.LoaiDG != "X" && docGia.LoaiDG != "Y")
+            if (string.IsNullOrWhiteSpace(docGia.LoaiDG))
             {
-                thongBao = "Loại độc giả chỉ được là X hoặc Y.";
+                thongBao = "Vui lòng chọn loại độc giả.";
                 return false;
             }
 
@@ -67,8 +105,8 @@ namespace QuanLyThuVien.BUS
                 return false;
             }
 
-            docGia.TongNo = 0;
-            return docGiaDAL.ThemDocGia(docGia, out thongBao);
+            thongBao = string.Empty;
+            return true;
         }
 
         private int TinhTuoi(DateTime ngaySinh, DateTime ngayThamChieu)

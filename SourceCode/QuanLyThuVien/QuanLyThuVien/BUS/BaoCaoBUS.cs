@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using QuanLyThuVien.DAL;
 
@@ -7,19 +8,14 @@ namespace QuanLyThuVien.BUS
     {
         private readonly BaoCaoDAL baoCaoDAL = new BaoCaoDAL();
 
-        public DataTable LayDanhSachThangBaoCao()
+        public DataTable LayBaoCaoMuonTheoTheLoai(DateTime ngayBaoCao)
         {
-            return baoCaoDAL.LayDanhSachThangBaoCao();
+            return baoCaoDAL.LayBaoCaoMuonTheoTheLoai(ngayBaoCao);
         }
 
-        public DataTable LayBaoCaoMuonTheoTheLoai(int nam, int thang)
+        public DataTable LayBaoCaoTraTre(DateTime ngayTra)
         {
-            return baoCaoDAL.LayBaoCaoMuonTheoTheLoai(nam, thang);
-        }
-
-        public DataTable LayBaoCaoTraTre(int nam, int thang)
-        {
-            return baoCaoDAL.LayBaoCaoTraTre(nam, thang);
+            return baoCaoDAL.LayBaoCaoTraTre(ngayTra);
         }
     }
 }
