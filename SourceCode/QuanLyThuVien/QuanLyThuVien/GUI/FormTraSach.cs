@@ -354,6 +354,7 @@ namespace QuanLyThuVien.GUI
             table.Columns.Add("TenDG", typeof(string));
             table.Columns.Add("TongNo", typeof(decimal));
             table.Columns.Add("MaSach", typeof(string));
+            table.Columns.Add("TenTheLoai", typeof(string));
             table.Columns.Add("TenSach", typeof(string));
             table.Columns.Add("NgayMuon", typeof(string));
             table.Columns.Add("SoNgayMuon", typeof(int));
@@ -384,6 +385,7 @@ namespace QuanLyThuVien.GUI
                     sourceRow["TenDG"],
                     sourceRow["TongNo"],
                     Convert.ToInt32(sourceRow["MaSach"]).ToString("D5"),
+                    sourceRow["TenTheLoai"] == DBNull.Value ? string.Empty : sourceRow["TenTheLoai"].ToString(),
                     sourceRow["TenSach"],
                     Convert.ToDateTime(sourceRow["NgayMuon"]).ToString("dd/MM/yyyy"),
                     sourceRow["SoNgayMuon"],
@@ -404,13 +406,15 @@ namespace QuanLyThuVien.GUI
             dgvSachDangMuon.Columns["ChonTra"].HeaderText = "Chọn";
             dgvSachDangMuon.Columns["TenSach"].HeaderText = "Tên sách";
             dgvSachDangMuon.Columns["MaSach"].HeaderText = "Mã sách";
+            dgvSachDangMuon.Columns["TenTheLoai"].HeaderText = "Thể loại";
             dgvSachDangMuon.Columns["NgayMuon"].HeaderText = "Ngày mượn";
             dgvSachDangMuon.Columns["SoNgayMuon"].HeaderText = "Số ngày mượn";
             dgvSachDangMuon.Columns["TienPhatDuKien"].HeaderText = "Tiền phạt";
 
             dgvSachDangMuon.Columns["ChonTra"].FillWeight = 45;
-            dgvSachDangMuon.Columns["TenSach"].FillWeight = 180;
-            dgvSachDangMuon.Columns["MaSach"].FillWeight = 100;
+            dgvSachDangMuon.Columns["MaSach"].FillWeight = 90;
+            dgvSachDangMuon.Columns["TenTheLoai"].FillWeight = 95;
+            dgvSachDangMuon.Columns["TenSach"].FillWeight = 175;
             dgvSachDangMuon.Columns["NgayMuon"].FillWeight = 120;
             dgvSachDangMuon.Columns["SoNgayMuon"].FillWeight = 110;
             dgvSachDangMuon.Columns["TienPhatDuKien"].FillWeight = 120;
@@ -418,6 +422,7 @@ namespace QuanLyThuVien.GUI
             dgvSachDangMuon.Columns["ChonTra"].ReadOnly = false;
             dgvSachDangMuon.Columns["TenSach"].ReadOnly = true;
             dgvSachDangMuon.Columns["MaSach"].ReadOnly = true;
+            dgvSachDangMuon.Columns["TenTheLoai"].ReadOnly = true;
             dgvSachDangMuon.Columns["NgayMuon"].ReadOnly = true;
             dgvSachDangMuon.Columns["SoNgayMuon"].ReadOnly = true;
             dgvSachDangMuon.Columns["TienPhatDuKien"].ReadOnly = true;

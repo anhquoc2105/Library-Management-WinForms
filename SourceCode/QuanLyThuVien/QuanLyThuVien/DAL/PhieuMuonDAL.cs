@@ -438,6 +438,8 @@ namespace QuanLyThuVien.DAL
                     dg.TenDG,
                     dg.TongNo,
                     s.MaSach,
+                    s.MaTheLoai,
+                    tl.TenTheLoai,
                     s.TenSach,
                     pm.NgayMuon,
                     pm.NgayPhaiTra,
@@ -466,6 +468,7 @@ namespace QuanLyThuVien.DAL
                 INNER JOIN DocGia dg ON pm.MaDG = dg.MaDG
                 INNER JOIN ChiTietPM ct ON pm.MaPhieu = ct.MaPhieu
                 INNER JOIN Sach s ON ct.MaSach = s.MaSach
+                LEFT JOIN TheLoai tl ON s.MaTheLoai = tl.MaTheLoai
                 WHERE ct.NgayTra IS NULL
                 ORDER BY pm.MaPhieu, s.TenSach";
 
